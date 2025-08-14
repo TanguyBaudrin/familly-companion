@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from src.api import web_routes, user_routes, auth_routes
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
