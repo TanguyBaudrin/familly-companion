@@ -1,0 +1,99 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+    color: #333;
+}
+
+header h1 {
+    font-family: 'Pacifico', cursive;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    font-size: 3rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+main {
+    padding: 2rem;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.welcome {
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.login-btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: linear-gradient(45deg, #ff6b6b, #f06595);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    margin-top: 1rem;
+    font-weight: bold;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+}
+
+.features {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.feature-list {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2rem;
+}
+
+.feature-item {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 15px;
+    width: 30%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.feature-item span {
+    font-size: 3rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.form-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

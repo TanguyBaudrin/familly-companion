@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejoindre l'aventure - Héros du Foyer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1><a href="/" style="text-decoration: none; color: white;">🦸 Héros du Foyer 🏆</a></h1>
+    </header>
+    <main>
+        <section class="form-container">
+            <h2>Créez votre compte</h2>
+            <form action="/api/users/register" method="post">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="login-btn">Créer mon compte</button>
+            </form>
+            <div class="social-login">
+                <p>Ou connectez-vous avec :</p>
+                <a href="/login/google" class="google-btn">
+                    <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google logo"> Se connecter avec Google
+                </a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
