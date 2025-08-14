@@ -11,7 +11,7 @@ help:
 install:
 	uv sync
 
-run:
+run: install
 	uv run uvicorn src.main:app --reload
 
 db-migrate:
