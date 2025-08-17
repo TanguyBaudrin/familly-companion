@@ -33,11 +33,25 @@
             </form>
             <div class="social-login">
                 <p>Ou connectez-vous avec :</p>
-                <a href="/login/google" class="google-btn">
-                    <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google logo"> Se connecter avec Google
-                </a>
+                <div id="g_id_onload"
+                     data-client_id="{{ google_client_id }}"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-login_uri="/auth/google"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
             </div>
         </section>
     </main>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
 </body>
 </html>

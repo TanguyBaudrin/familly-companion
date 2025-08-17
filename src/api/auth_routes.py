@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Body, status
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from sqlalchemy.orm import Session
 from starlette.config import Config
+from pydantic import BaseModel
 
 from src.core.config import settings
 from src.core import services
@@ -23,6 +24,8 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
+
+
 @router.get('/login/google')
 async def login_google(request: Request):
     redirect_uri = settings.REDIRECT_URI
@@ -32,10 +35,9 @@ async def login_google(request: Request):
 async def auth_google(request: Request, db: Session = Depends(get_db)):
     try:
         token = await oauth.google.authorize_access_token(request)
+        user_info = await oauth.google.parse_id_token(request, token)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Authentication failed: {e}")
-
-    user_info = await oauth.google.parse_id_token(request, token)
 
     # Check if user already exists by google_id or email
     user = services.get_user_by_google_id(db, user_info['sub'])
@@ -60,5 +62,22 @@ async def auth_google(request: Request, db: Session = Depends(get_db)):
         }
         user = services.create_user_from_oauth(db, user_data)
 
-    # TODO: Implement session management (e.g., set a cookie)
+    # Store user info in session
+    request.session["user"] = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "profile_picture": user.profile_picture
+    }
+    return RedirectResponse(url="/dashboard")
+
+@router.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
     return RedirectResponse(url="/")
+
+async def get_current_user(request: Request):
+    user = request.session.get("user")
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    return user

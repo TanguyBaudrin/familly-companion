@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Compagnon Familial</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Tableau de Bord</h1>
+        <nav>
+            <a href="/logout">Déconnexion</a>
+        </nav>
+    </header>
+    <main>
+        <section id="household-info">
+            <h2>Informations du Foyer</h2>
+            <p>Bienvenue sur votre tableau de bord familial. Ici, vous pourrez gérer les tâches et voir le classement de votre foyer.</p>
+            <!-- Les informations du foyer seront affichées ici -->
+        </section>
+
+        <section id="add-task">
+            <h2>Ajouter une Nouvelle Tâche</h2>
+            <form action="/tasks" method="POST">
+                <label for="task-name">Nom de la tâche :</label>
+                <input type="text" id="task-name" name="task_name" required>
+
+                <label for="task-description">Description :</label>
+                <textarea id="task-description" name="task_description"></textarea>
+
+                <label for="task-points">Points :</label>
+                <input type="number" id="task-points" name="task_points" min="1" value="10" required>
+
+                <label for="task-assignee">Assignée à :</label>
+                <select id="task-assignee" name="task_assignee">
+                    <!-- Les membres de la famille seront chargés ici dynamiquement -->
+                    <option value="all">Tous les membres</option>
+                    <option value="member1">Membre 1</option>
+                    <option value="member2">Membre 2</option>
+                </select>
+
+                <button type="submit">Ajouter la Tâche</button>
+            </form>
+        </section>
+
+        <section id="current-tasks">
+            <h2>Tâches Actuelles</h2>
+            <!-- Liste des tâches en cours -->
+            <ul>
+                <li>Tâche exemple 1 - Assignée à Membre 1 - 10 points</li>
+                <li>Tâche exemple 2 - Assignée à Tous - 5 points</li>
+            </ul>
+        </section>
+
+        <section id="leaderboard">
+            <h2>Classement du Foyer</h2>
+            <!-- Classement des membres -->
+            <ol>
+                <li>Membre 1 - 150 points</li>
+                <li>Membre 2 - 120 points</li>
+                <li>Membre 3 - 90 points</li>
+            </ol>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Compagnon Familial</p>
+    </footer>
+</body>
+</html>
