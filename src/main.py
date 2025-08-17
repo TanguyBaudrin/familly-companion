@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from src.api import web_routes, user_routes, auth_routes
+from src.api import web_routes
 from src.core.config import settings
 from dotenv import load_dotenv
 
@@ -15,8 +15,6 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="src/web/static"), name="static")
 app.include_router(web_routes.router)
-app.include_router(user_routes.router)
-app.include_router(auth_routes.router)
 
 @app.get("/api/hello")
 def read_root():
