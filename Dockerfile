@@ -11,7 +11,7 @@ RUN pip install uv
 COPY pyproject.toml uv.lock* ./
 
 # Install dependencies
-RUN uv sync --frozen-lock
+RUN uv sync --frozen
 
 # Copy the current directory contents into the container at /app
 COPY src/ ./src/
