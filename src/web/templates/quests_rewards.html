@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer Quêtes & Récompenses - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h4 class="center-align">Gérer Quêtes & Récompenses ⚔️🎁</h4>
+
+    <div class="row">
+        <div class="col s12 m6">
+            <div class="card-panel amber lighten-5 z-depth-2">
+                <h5 class="custom-title"><i class="material-icons left">add_box</i>Ajouter une nouvelle Quête ✨</h5>
+                <form id="add-task-form">
+                    <div class="input-field">
+                        <input id="task_description" type="text" class="validate" required>
+                        <label for="task_description">Description de la Quête</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="task_points" type="number" class="validate" value="10" min="1" required>
+                        <label for="task_points">Points</label>
+                    </div>
+                    <div class="input-field">
+                        <select id="task_assigned_to_id">
+                            <option value="" disabled selected>Assigner à...</option>
+                            <!-- Members will be loaded here -->
+                        </select>
+                        <label>Assigner à</label>
+                    </div>
+                    <button class="btn waves-effect waves-light brown darken-1" type="submit">Ajouter Quête
+                        <i class="material-icons right">send</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="col s12 m6">
+            <div class="card-panel amber lighten-5 z-depth-2">
+                <h5 class="custom-title"><i class="material-icons left">card_giftcard</i>Ajouter une nouvelle Récompense 💎</h5>
+                <form id="add-reward-form">
+                    <div class="input-field">
+                        <input id="reward_name" type="text" class="validate" required>
+                        <label for="reward_name">Nom de la Récompense</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="reward_cost" type="number" class="validate" value="50" min="1" required>
+                        <label for="reward_cost">Coût en Points</label>
+                    </div>
+                    <div class="input-field">
+                        <textarea id="reward_description" class="materialize-textarea"></textarea>
+                        <label for="reward_description">Description</label>
+                    </div>
+                    <button class="btn waves-effect waves-light brown darken-1" type="submit">Ajouter Récompense
+                        <i class="material-icons right">add</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <h5 class="custom-title center-align">Liste des Quêtes 📜</h5>
+            <div id="tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection" id="tasks-list">
+                <!-- Tasks will be loaded here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <h5 class="custom-title center-align">Liste des Récompenses 🏆</h5>
+            <div id="rewards-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-red-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection" id="rewards-list">
+                <!-- Rewards will be loaded here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal Structure -->
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <h4>Modifier Quête ✏️</h4>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit_task_id">
+                <div class="input-field">
+                    <input id="edit_task_description" type="text" class="validate" required>
+                    <label for="edit_task_description">Description de la Quête</label>
+                </div>
+                <div class="input-field">
+                    <input id="edit_task_points" type="number" class="validate" min="1" required>
+                    <label for="edit_task_points">Points</label>
+                </div>
+                <div class="input-field">
+                    <select id="edit_task_assigned_to_id">
+                        <option value="" disabled selected>Assigner à...</option>
+                        <!-- Members will be loaded here -->
+                    </select>
+                    <label>Assigner à</label>
+                </div>
+                <div class="input-field">
+                    <select id="edit_task_status">
+                        <option value="pending">En cours</option>
+                        <option value="completed">Terminée</option>
+                    </select>
+                    <label>Statut</label>
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit">Sauvegarder
+                    <i class="material-icons right">save</i>
+                </button>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
+        </div>
+    </div>
+
+    <!-- Edit Reward Modal Structure -->
+    <div id="edit-reward-modal" class="modal">
+        <div class="modal-content">
+            <h4>Modifier Récompense ✏️</h4>
+            <form id="edit-reward-form">
+                <input type="hidden" id="edit_reward_id">
+                <div class="input-field">
+                    <input id="edit_reward_name" type="text" class="validate" required>
+                    <label for="edit_reward_name">Nom de la Récompense</label>
+                </div>
+                <div class="input-field">
+                    <input id="edit_reward_cost" type="number" class="validate" min="1" required>
+                    <label for="edit_reward_cost">Coût en Points</label>
+                </div>
+                <div class="input-field">
+                    <textarea id="edit_reward_description" class="materialize-textarea"></textarea>
+                    <label for="edit_reward_description">Description</label>
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit">Sauvegarder
+                    <i class="material-icons right">save</i>
+                </button>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', path='/js/quests_rewards.js') }}"></script>
+{% endblock %}

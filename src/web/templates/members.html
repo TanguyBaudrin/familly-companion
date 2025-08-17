@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer les Héros - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h4 class="center-align">Gérer les Héros 🦸</h4>
+
+    <div class="row">
+        <div class="col s12 m8 offset-m2">
+            <div class="card-panel amber lighten-5 z-depth-2">
+                <h5 class="custom-title"><i class="material-icons left">group_add</i>Ajouter un nouveau Héros ✨</h5>
+                <form id="add-member-form">
+                    <div class="input-field">
+                        <input id="member_name" type="text" class="validate" required>
+                        <label for="member_name">Nom du Héros</label>
+                    </div>
+                    <button class="btn waves-effect waves-light brown darken-1" type="submit">Ajouter Héros
+                        <i class="material-icons right">person_add</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <h5 class="custom-title center-align">Liste des Héros 📜</h5>
+            <div id="members-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection" id="members-list">
+                <!-- Members will be loaded here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Edit Member Modal Structure -->
+    <div id="edit-member-modal" class="modal">
+        <div class="modal-content">
+            <h4>Modifier Héros ✏️</h4>
+            <form id="edit-member-form">
+                <input type="hidden" id="edit_member_id">
+                <div class="input-field">
+                    <input id="edit_member_name" type="text" class="validate" required>
+                    <label for="edit_member_name">Nom du Héros</label>
+                </div>
+                <div class="input-field">
+                    <input id="edit_member_points" type="number" class="validate">
+                    <label for="edit_member_points">Points Totaux</label>
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit">Sauvegarder
+                    <i class="material-icons right">save</i>
+                </button>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', path='/js/members.js') }}"></script>
+{% endblock %}

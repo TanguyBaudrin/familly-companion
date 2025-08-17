@@ -6,66 +6,16 @@
 <div class="row">
 
     <!-- Colonne de gauche : Profil et Classement -->
-    <div class="col s12 l5">
+    <div class="col s12">
         
 
         <!-- Classement -->
         <div class="card-panel amber lighten-5 z-depth-2">
-            <h5 class="custom-title"><i class="material-icons left">assessment</i>Panthéon des Héros</h5>
-            <ul class="collection">
-                <li class="collection-item avatar amber lighten-4">
-                    <i class="material-icons circle amber">star</i>
-                    <span class="title">Corbac le Conquérant</span>
-                    <p>2100 Points</p>
-                    <a href="#!" class="secondary-content">🥇</a>
-                </li>
-                <li class="collection-item avatar amber lighten-4">
-                    <i class="material-icons circle grey lighten-1">star_half</i>
-                    <span class="title">Elara la Sage</span>
-                    <p>1850 Points</p>
-                     <a href="#!" class="secondary-content">🥈</a>
-                </li>
-                <li class="collection-item avatar amber lighten-4">
-                    <i class="material-icons circle brown lighten-2">star_border</i>
-                    <span class="title">Bjorn le Bâtisseur</span>
-                    <p>1600 Points</p>
-                     <a href="#!" class="secondary-content">🥉</a>
-                </li>
+            <h5 class="custom-title"><i class="material-icons left">assessment</i>Panthéon des Héros 🏆</h5>
+            <div id="leaderboard-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection" id="leaderboard-list">
+                <!-- Leaderboard items will be loaded here by JavaScript -->
             </ul>
-        </div>
-    </div>
-
-    <!-- Colonne de droite : Ajout de Tâches -->
-    <div class="col s12 l7">
-        <div class="card-panel amber lighten-5 z-depth-2">
-            <h5 class="custom-title"><i class="material-icons left">add_box</i>Ajouter une nouvelle quête</h5>
-            <form action="/tasks" method="POST">
-                <div class="input-field">
-                    <input id="task_name" name="task_name" type="text" class="validate" required>
-                    <label for="task_name">Nom de la quête</label>
-                </div>
-                <div class="input-field">
-                    <textarea id="task_description" name="task_description" class="materialize-textarea"></textarea>
-                    <label for="task_description">Description de la mission</label>
-                </div>
-                <div class="row">
-                    <div class="input-field col s6">
-                        <input id="task_points" name="task_points" type="number" value="10" min="1" class="validate" required>
-                        <label for="task_points">Récompense (XP)</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <select id="task_assignee" name="task_assignee">
-                            <option value="" disabled selected>Assigner à...</option>
-                            <option value="all">Toute la guilde</option>
-                            <option value="member1">Membre 1</option>
-                        </select>
-                        <label>Aventurier</label>
-                    </div>
-                </div>
-                <button class="btn waves-effect waves-light brown darken-1" type="submit" name="action">Lancer la quête
-                    <i class="material-icons right">send</i>
-                </button>
-            </form>
         </div>
     </div>
 </div>
@@ -73,40 +23,24 @@
 <!-- Tableau des quêtes -->
 <div class="row">
     <div class="col s12">
-         <h4 class="custom-title center-align">Tableau des Quêtes</h4>
-    </div>
-    <!-- Carte de quête exemple 1 -->
-    <div class="col s12 m6 l4">
-        <div class="card-panel green lighten-5 hoverable">
-          <h5 class="custom-title">Ranger sa chambre</h5>
-          <p>Une mission périlleuse contre le chaos et le désordre.</p>
-          <div class="card-action">
-            <span class="amber-text text-darken-2"><b>15 XP ⚔️</b></span>
-            <a href="#" class="btn-floating btn-small waves-effect waves-light green right"><i class="material-icons">check</i></a>
-          </div>
-        </div>
-    </div>
-    <!-- Carte de quête exemple 2 -->
-    <div class="col s12 m6 l4">
-        <div class="card-panel blue lighten-5 hoverable">
-          <h5 class="custom-title">Mettre la table</h5>
-          <p>Préparer le campement pour le grand festin du soir.</p>
-          <div class="card-action">
-            <span class="amber-text text-darken-2"><b>5 XP ⚔️</b></span>
-            <a href="#" class="btn-floating btn-small waves-effect waves-light green right"><i class="material-icons">check</i></a>
-          </div>
-        </div>
-    </div>
-    <!-- Carte de quête terminée -->
-    <div class="col s12 m6 l4">
-        <div class="card-panel grey lighten-4 hoverable">
-          <h5 class="custom-title grey-text">Sortir les poubelles</h5>
-          <p class="grey-text">Évacuer les déchets toxiques de la forteresse.</p>
-          <div class="card-action grey-text">
-            <span><b>10 XP ✅</b></span>
-            <span class="right">Terminée</span>
-          </div>
-        </div>
+         <h4 class="custom-title center-align">Tableau des Quêtes 📜</h4>
+         <div id="tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+         <ul class="collection" id="task-list">
+            <!-- Task items will be loaded here by JavaScript -->
+         </ul>
     </div>
 </div>
+
+<!-- Rewards Section -->
+<div class="row">
+    <div class="col s12">
+        <h4 class="custom-title center-align">Récompenses Disponibles 🎁</h4>
+        <div id="rewards-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-red-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+        <ul class="collection" id="reward-list">
+            <!-- Reward items will be loaded here by JavaScript -->
+        </ul>
+    </div>
+</div>
+
+<script src="{{ url_for('static', path='/js/dashboard.js') }}"></script>
 {% endblock %}
