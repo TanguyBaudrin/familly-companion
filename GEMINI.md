@@ -37,3 +37,8 @@ Je démarre un projet d'application web, un **compagnon de la famille**, destin�
 
 - Ajout et suppression de tâches rapide et facile pour chaque membre de la famille.
 
+
+## Guidelines de développement
+
+- Systématiquement versionner les fichiers statiques en cas de changement pour éviter de dépendre du cache navigateur.
+

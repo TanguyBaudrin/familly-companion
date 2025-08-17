@@ -302,6 +302,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Event listeners for example buttons
+    document.querySelectorAll('.use-task-example').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const description = event.currentTarget.dataset.description;
+            const points = event.currentTarget.dataset.points;
+            
+            document.getElementById('task_description').value = description;
+            document.getElementById('task_points').value = points;
+            M.updateTextFields();
+        });
+    });
+
+    document.querySelectorAll('.use-reward-example').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const name = event.currentTarget.dataset.name;
+            const cost = event.currentTarget.dataset.cost;
+            const description = event.currentTarget.dataset.description;
+            
+            document.getElementById('reward_name').value = name;
+            document.getElementById('reward_cost').value = cost;
+            document.getElementById('reward_description').value = description;
+            M.updateTextFields();
+        });
+    });
+
     // Initial loads
     populateMemberDropdowns();
     loadTasks();

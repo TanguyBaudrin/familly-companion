@@ -6,7 +6,7 @@
 <div class="row">
 
     <!-- Colonne de gauche : Profil et Classement -->
-    <div class="col s12">
+    <div class="col s12 l5">
         
 
         <!-- Classement -->
@@ -16,6 +16,54 @@
             <ul class="collection" id="leaderboard-list">
                 <!-- Leaderboard items will be loaded here by JavaScript -->
             </ul>
+        </div>
+    </div>
+
+    <!-- Colonne de droite : Ajout de Tâches -->
+    <div class="col s12 l7">
+        <div class="card-panel amber lighten-5 z-depth-2">
+            <h5 class="custom-title"><i class="material-icons left">add_box</i>Ajouter une nouvelle Quête ✨</h5>
+            <form id="add-task-form">
+                <div class="input-field">
+                    <input id="task_name" name="task_name" type="text" class="validate" required>
+                    <label for="task_name">Nom de la quête</label>
+                </div>
+                <div class="input-field">
+                    <textarea id="task_description" name="task_description" class="materialize-textarea"></textarea>
+                    <label for="task_description">Description de la mission</label>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+                        <input id="task_points" name="task_points" type="number" value="10" min="1" class="validate" required>
+                        <label for="task_points">Récompense (XP)</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <select id="task_assignee" name="task_assignee">
+                            <option value="" disabled selected>Assigner à...</option>
+                            <!-- Member options will be dynamically loaded here by JavaScript -->
+                        </select>
+                        <label>Aventurier</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+                        <input id="task_duration_value" name="task_duration_value" type="number" min="1" class="validate">
+                        <label for="task_duration_value">Durée</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <select id="task_duration_unit" name="task_duration_unit">
+                            <option value="" disabled selected>Unité de durée</option>
+                            <option value="days">Jours</option>
+                            <option value="weeks">Semaines</option>
+                            <option value="months">Mois</option>
+                        </select>
+                        <label>Unité</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit" name="action">Lancer la quête
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
         </div>
     </div>
 </div>

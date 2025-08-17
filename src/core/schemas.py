@@ -21,6 +21,8 @@ class FamilyMemberResponse(FamilyMemberBase):
 class TaskBase(BaseModel):
     description: str
     points: int
+    duration_value: Optional[int] = None # New field, now optional in TaskBase
+    duration_unit: Optional[str] = None # New field, now optional in TaskBase
 
 class TaskCreate(TaskBase):
     assigned_to_id: int
@@ -30,6 +32,8 @@ class TaskUpdate(TaskBase):
     points: Optional[int] = None
     status: Optional[str] = None # Allow updating status
     assigned_to_id: Optional[int] = None # Allow reassigning task
+    duration_value: Optional[int] = None # New field
+    duration_unit: Optional[str] = None # New field
 
 class TaskResponse(TaskBase):
     id: int

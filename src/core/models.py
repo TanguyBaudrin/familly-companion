@@ -22,6 +22,8 @@ class Task(Base): # type: ignore
     status = Column(String, default='pending') # e.g., 'pending', 'completed'
     created_at = Column(DateTime, default=lambda: datetime.now(UTC)) # Use datetime.now(UTC)
     completed_at = Column(DateTime, nullable=True)
+    duration_value = Column(Integer, nullable=True) # New field for duration value
+    duration_unit = Column(String, nullable=True) # New field for duration unit (e.g., 'days', 'weeks', 'months')
 
     assigned_to = relationship("FamilyMember", back_populates="tasks")
     points_history = relationship("PointsHistory", back_populates="task")

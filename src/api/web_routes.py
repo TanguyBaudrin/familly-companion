@@ -87,12 +87,12 @@ def read_task(task_id: int, db: Session = Depends(get_db), current_user: dict = 
 
 @router.post("/api/tasks", response_model=schemas.TaskResponse, status_code=status.HTTP_201_CREATED)
 def add_task(task: schemas.TaskCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_task = create_task(db, description=task.description, points=task.points, assigned_to_id=task.assigned_to_id)
+    db_task = create_task(db, description=task.description, points=task.points, assigned_to_id=task.assigned_to_id, duration_value=task.duration_value, duration_unit=task.duration_unit)
     return db_task
 
 @router.put("/api/tasks/{task_id}", response_model=schemas.TaskResponse)
 def update_task_api(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_task = update_task(db, task_id, description=task.description, points=task.points, assigned_to_id=task.assigned_to_id, status=task.status)
+    db_task = update_task(db, task_id, description=task.description, points=task.points, assigned_to_id=task.assigned_to_id, status=task.status, duration_value=task.duration_value, duration_unit=task.duration_unit)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
@@ -107,8 +107,13 @@ def delete_task_api(task_id: int, db: Session = Depends(get_db), current_user: d
 @router.post("/api/tasks/{task_id}/complete", response_model=schemas.TaskResponse)
 def complete_task_api(task_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     completed_task = complete_task(db, task_id)
-    if not completed_task:
-        raise HTTPException(status_code=404, detail="Task not found or already completed")
+    if completed_task is None:
+        # Differentiate between not found and expired
+        task = get_task_by_id(db, task_id)
+        if task and task.status == 'pending' and is_task_expired(task):
+            raise HTTPException(status_code=400, detail="Task is expired and cannot be completed")
+        else:
+            raise HTTPException(status_code=404, detail="Task not found or already completed")
     return completed_task
 
 # API Endpoints - Rewards

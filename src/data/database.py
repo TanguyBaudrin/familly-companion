@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from src.core.models import Base, FamilyMember, Task, Reward, PointsHistory
-from datetime import datetime, UTC # Import datetime and UTC
+from datetime import datetime, UTC, timedelta # Import timedelta
 from typing import Optional # Import Optional
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./heros_du_foyer.db"
@@ -56,7 +56,25 @@ def get_tasks_for_member(db: Session, member_id: int):
 def get_task_by_id(db: Session, task_id: int):
     return db.query(Task).filter(Task.id == task_id).first()
 
-def update_task(db: Session, task_id: int, description: Optional[str] = None, points: Optional[int] = None, assigned_to_id: Optional[int] = None, status: Optional[str] = None):
+def calculate_expiration_time(created_at: datetime, duration_value: int, duration_unit: str) -> datetime:
+    if duration_unit == "days":
+        return created_at + timedelta(days=duration_value)
+    elif duration_unit == "weeks":
+        return created_at + timedelta(weeks=duration_value)
+    elif duration_unit == "months":
+        # Approximate months as 30 days for simplicity, or use more complex date calculations if needed
+        return created_at + timedelta(days=duration_value * 30)
+    else:
+        raise ValueError("Invalid duration unit")
+
+def is_task_expired(task: Task) -> bool:
+    if task.duration_value is None or task.duration_unit is None:
+        return False # Task has no duration, so it never expires
+    
+    expiration_time = calculate_expiration_time(task.created_at, task.duration_value, task.duration_unit)
+    return datetime.now(UTC) > expiration_time
+
+def update_task(db: Session, task_id: int, description: Optional[str] = None, points: Optional[int] = None, assigned_to_id: Optional[int] = None, status: Optional[str] = None, duration_value: Optional[int] = None, duration_unit: Optional[str] = None):
     db_task = db.query(Task).filter(Task.id == task_id).first()
     if db_task:
         if description is not None:
@@ -67,6 +85,10 @@ def update_task(db: Session, task_id: int, description: Optional[str] = None, po
             db_task.assigned_to_id = assigned_to_id # type: ignore
         if status is not None:
             db_task.status = status # type: ignore
+        if duration_value is not None:
+            db_task.duration_value = duration_value # type: ignore
+        if duration_unit is not None:
+            db_task.duration_unit = duration_unit # type: ignore
         db.commit()
         db.refresh(db_task)
     return db_task
@@ -109,8 +131,8 @@ def delete_reward(db: Session, reward_id: int):
         return True
     return False
 
-def create_task(db: Session, description: str, points: int, assigned_to_id: int):
-    db_task = Task(description=description, points=points, assigned_to_id=assigned_to_id)
+def create_task(db: Session, description: str, points: int, assigned_to_id: int, duration_value: Optional[int] = None, duration_unit: Optional[str] = None):
+    db_task = Task(description=description, points=points, assigned_to_id=assigned_to_id, duration_value=duration_value, duration_unit=duration_unit)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -126,6 +148,9 @@ def create_reward(db: Session, name: str, cost: int, description: Optional[str] 
 def complete_task(db: Session, task_id: int):
     task = db.query(Task).filter(Task.id == task_id).first()
     if task and task.status == 'pending':
+        if is_task_expired(task):
+            return None # Task is expired, cannot be completed
+
         task.status = 'completed' # type: ignore
         task.completed_at = datetime.now(UTC) # type: ignore
         member = db.query(FamilyMember).filter(FamilyMember.id == task.assigned_to_id).first()
@@ -164,5 +189,3 @@ def claim_reward(db: Session, member_id: int, reward_id: int):
 
 def get_points_history_for_member(db: Session, member_id: int):
     return db.query(PointsHistory).filter(PointsHistory.member_id == member_id).order_by(PointsHistory.timestamp.desc()).all()
-
-Base.metadata.create_all(bind=engine)

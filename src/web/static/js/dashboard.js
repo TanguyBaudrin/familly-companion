@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (task.status !== 'completed') {
                     completeButton = `<a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light green" data-task-id="${task.id}"><i class="material-icons">check</i></a>`;
                 }
-                li.innerHTML = `<div>${task.description} - ${task.points} points <span class="secondary-content">Statut: ${statusText}</span>${completeButton}</div>`;
+                li.innerHTML = `<div>${task.description} 📝 - ${task.points} points <span class="secondary-content">Statut: ${statusText}</span>${completeButton}</div>`;
                 taskList.appendChild(li);
             });
             // Add event listeners for complete buttons
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rewards.forEach(reward => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
-                li.innerHTML = `<div>${reward.name} - ${reward.cost} points <span class="secondary-content">${reward.description || ''}</span><a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light blue" data-reward-id="${reward.id}"><i class="material-icons">card_giftcard</i></a></div>`;
+                li.innerHTML = `<div>${reward.name} 🎁 - ${reward.cost} points <span class="secondary-content">${reward.description || ''}</span><a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light blue" data-reward-id="${reward.id}"><i class="material-icons">card_giftcard</i></a></div>`;
                 rewardList.appendChild(li);
             });
             // Add event listeners for claim buttons

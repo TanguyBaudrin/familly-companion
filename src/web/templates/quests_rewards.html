@@ -26,6 +26,21 @@
                         </select>
                         <label>Assigner à</label>
                     </div>
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input id="task_duration_value" type="number" min="1" class="validate">
+                            <label for="task_duration_value">Durée</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <select id="task_duration_unit">
+                                <option value="" disabled selected>Unité de durée</option>
+                                <option value="days">Jours</option>
+                                <option value="weeks">Semaines</option>
+                                <option value="months">Mois</option>
+                            </select>
+                            <label>Unité</label>
+                        </div>
+                    </div>
                     <button class="btn waves-effect waves-light brown darken-1" type="submit">Ajouter Quête
                         <i class="material-icons right">send</i>
                     </button>
@@ -53,6 +68,215 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12 m6">
+            <h5 class="custom-title center-align">Exemples de Quêtes 💡</h5>
+            <ul class="collection">
+                <li class="collection-item">
+                    <div>Ranger sa chambre<span class="secondary-content">15 points ✨</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Ranger sa chambre" data-points="15">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Mettre la table<span class="secondary-content">5 points 🍽️</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Mettre la table" data-points="5">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Débarrasser la table<span class="secondary-content">5 points 🧹</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Débarrasser la table" data-points="5">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Faire son lit<span class="secondary-content">10 points 🛌</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Faire son lit" data-points="10">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Aider à préparer le repas<span class="secondary-content">20 points 🍳</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Aider à préparer le repas" data-points="20">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Sortir les poubelles<span class="secondary-content">10 points 🗑️</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Sortir les poubelles" data-points="10">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Arroser les plantes<span class="secondary-content">5 points 🌱</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Arroser les plantes" data-points="5">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Aider à faire les courses<span class="secondary-content">25 points 🛒</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Aider à faire les courses" data-points="25">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Lire pendant 30 minutes<span class="secondary-content">15 points 📚</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Lire pendant 30 minutes" data-points="15">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Faire ses devoirs (terminés)<span class="secondary-content">30 points 🧠</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Faire ses devoirs (terminés)" data-points="30">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Aider à plier le linge<span class="secondary-content">10 points 🧺</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Aider à plier le linge" data-points="10">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Nettoyer la salle de bain (rapide)<span class="secondary-content">20 points 🧼</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Nettoyer la salle de bain (rapide)" data-points="20">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Nourrir l'animal de compagnie<span class="secondary-content">5 points 🐾</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Nourrir l'animal de compagnie" data-points="5">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Préparer son sac pour le lendemain<span class="secondary-content">10 points 🎒</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
+                       data-description="Préparer son sac pour le lendemain" data-points="10">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="col s12 m6">
+            <h5 class="custom-title center-align">Exemples de Récompenses 💡</h5>
+            <ul class="collection">
+                <li class="collection-item">
+                    <div>Choisir le film du soir<span class="secondary-content">50 points 🎬</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Choisir le film du soir" data-cost="50" data-description="Regarder le film de son choix en famille.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Une heure de jeu vidéo supplémentaire<span class="secondary-content">75 points 🎮</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Une heure de jeu vidéo supplémentaire" data-cost="75" data-description="Profiter d'une heure de jeu vidéo en plus.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Soirée pyjama avec un ami<span class="secondary-content">150 points 🥳</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Soirée pyjama avec un ami" data-cost="150" data-description="Inviter un ami à dormir à la maison.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Choisir le repas du soir<span class="secondary-content">100 points 🍕</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Choisir le repas du soir" data-cost="100" data-description="Décider du menu du dîner.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Une sortie au parc/cinéma<span class="secondary-content">200 points 🌳🎟️</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Une sortie au parc/cinéma" data-cost="200" data-description="Aller au parc ou au cinéma.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Un petit jouet/livre<span class="secondary-content">250 points 🧸📖</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Un petit jouet/livre" data-cost="250" data-description="Recevoir un petit cadeau.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Pas de corvée pendant un jour<span class="secondary-content">100 points 🧘</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Pas de corvée pendant un jour" data-cost="100" data-description="Être exempté de toutes les corvées pendant une journée.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Dormir plus tard le week-end<span class="secondary-content">80 points 😴</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Dormir plus tard le week-end" data-cost="80" data-description="Avoir le droit de se lever plus tard le samedi ou le dimanche.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Un dessert spécial<span class="secondary-content">60 points 🍰</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Un dessert spécial" data-cost="60" data-description="Avoir son dessert préféré.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Un bon pour un câlin extra long<span class="secondary-content">20 points 🤗</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Un bon pour un câlin extra long" data-cost="20" data-description="Recevoir un câlin spécial.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Choisir la musique pour la journée<span class="secondary-content">40 points 🎶</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Choisir la musique pour la journée" data-cost="40" data-description="Décider de la playlist familiale.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Une histoire supplémentaire au coucher<span class="secondary-content">30 points 🌙</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Une histoire supplémentaire au coucher" data-cost="30" data-description="Avoir une histoire de plus avant de dormir.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Construire un fort dans le salon<span class="secondary-content">120 points 🏰</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Construire un fort dans le salon" data-cost="120" data-description="Construire un fort avec des couvertures et des oreillers.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+                <li class="collection-item">
+                    <div>Un après-midi bricolage/dessin<span class="secondary-content">90 points 🎨</span></div>
+                    <a href="#!" class="btn-small waves-effect waves-light green use-reward-example" 
+                       data-name="Un après-midi bricolage/dessin" data-cost="90" data-description="Passer un après-midi à faire des activités créatives.">
+                       Utiliser cet exemple
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -111,7 +335,7 @@
         </div>
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
-        </div>
+        }
     </div>
 
     <!-- Edit Reward Modal Structure -->
