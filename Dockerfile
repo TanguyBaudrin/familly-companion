@@ -4,14 +4,11 @@ FROM python:3.13-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install uv
-RUN pip install uv
-
-# Copy the pyproject.toml and uv.lock files
-COPY pyproject.toml uv.lock* ./
+# Copy the requirements file
+COPY requirements.txt ./
 
 # Install dependencies
-RUN uv sync --frozen
+RUN pip install -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY src/ ./src/
@@ -21,6 +18,7 @@ EXPOSE 80
 
 # Define environment variable
 ENV NAME=World
+ENV PYTHONPATH=/app
 
 # Run main.py when the container launches
 CMD ["python", "src/main.py"]

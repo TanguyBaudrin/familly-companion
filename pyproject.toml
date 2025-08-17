@@ -15,4 +15,5 @@ dependencies = [
     "httpx>=0.27.0", # Explicitly added for uvicorn[standard] compatibility
     "Authlib>=1.3.0",
     "python-dotenv>=1.0.0",
+    "itsdangerous>=2.1.2",
 ]
