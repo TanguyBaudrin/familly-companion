@@ -62,10 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
                 li.innerHTML = `
-                    <div>
-                        ${member.name} <span class="secondary-content">${member.total_points} points ✨</span>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light blue edit-member-btn" data-member-id="${member.id}" data-member-name="${member.name}" data-member-points="${member.total_points}"><i class="material-icons">edit</i></a>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light red delete-member-btn" data-member-id="${member.id}"><i class="material-icons">delete</i></a>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>${member.name}</span>
+                        <span class="member-actions">
+                            <span class="points-text">${member.total_points} points ✨</span>
+                            <a href="#!" class="btn-small waves-effect waves-light blue edit-member-btn" data-member-id="${member.id}" data-member-name="${member.name}" data-member-points="${member.total_points}"><i class="material-icons">edit</i></a>
+                            <a href="#!" class="btn-small waves-effect waves-light red delete-member-btn" data-member-id="${member.id}"><i class="material-icons">delete</i></a>
+                        </span>
                     </div>
                 `;
                 membersList.appendChild(li);

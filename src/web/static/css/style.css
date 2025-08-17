@@ -1,3 +1,16 @@
+/* Espacement horizontal pour les boutons d'action membres */
+.member-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.member-actions .points-text {
+    margin-right: 12px;
+    color: #4e857a;
+    font-weight: 500;
+    font-size: 1.1em;
+}
 /* --- Thème "Aventure" pour Materialize CSS --- */
 
 /* --- Polices personnalisées --- */
