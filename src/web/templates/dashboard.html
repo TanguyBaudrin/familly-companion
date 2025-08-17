@@ -1,70 +1,116 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord - Compagnon Familial</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header>
-        <h1>Tableau de Bord</h1>
-        <nav>
-            <a href="/logout">Déconnexion</a>
-        </nav>
-    </header>
-    <main>
-        <section id="household-info">
-            <h2>Informations du Foyer</h2>
-            <p>Bienvenue sur votre tableau de bord familial. Ici, vous pourrez gérer les tâches et voir le classement de votre foyer.</p>
-            <!-- Les informations du foyer seront affichées ici -->
-        </section>
+{% extends "base.html" %}
 
-        <section id="add-task">
-            <h2>Ajouter une Nouvelle Tâche</h2>
-            <form action="/tasks" method="POST">
-                <label for="task-name">Nom de la tâche :</label>
-                <input type="text" id="task-name" name="task_name" required>
+{% block title %}Tableau de Bord - {{ super() }}{% endblock %}
 
-                <label for="task-description">Description :</label>
-                <textarea id="task-description" name="task_description"></textarea>
+{% block content %}
+<div class="row">
 
-                <label for="task-points">Points :</label>
-                <input type="number" id="task-points" name="task_points" min="1" value="10" required>
+    <!-- Colonne de gauche : Profil et Classement -->
+    <div class="col s12 l5">
+        <!-- Profil de l'utilisateur -->
+        <div class="card-panel amber lighten-5 z-depth-2">
+            <h5 class="custom-title"><i class="material-icons left">shield</i>Profil de {{ user.name or "l'Aventurier" }}</h5>
+            <p>Bienvenue dans votre quartier général. Prêt pour de nouvelles quêtes ?</p>
+        </div>
 
-                <label for="task-assignee">Assignée à :</label>
-                <select id="task-assignee" name="task_assignee">
-                    <!-- Les membres de la famille seront chargés ici dynamiquement -->
-                    <option value="all">Tous les membres</option>
-                    <option value="member1">Membre 1</option>
-                    <option value="member2">Membre 2</option>
-                </select>
-
-                <button type="submit">Ajouter la Tâche</button>
-            </form>
-        </section>
-
-        <section id="current-tasks">
-            <h2>Tâches Actuelles</h2>
-            <!-- Liste des tâches en cours -->
-            <ul>
-                <li>Tâche exemple 1 - Assignée à Membre 1 - 10 points</li>
-                <li>Tâche exemple 2 - Assignée à Tous - 5 points</li>
+        <!-- Classement -->
+        <div class="card-panel amber lighten-5 z-depth-2">
+            <h5 class="custom-title"><i class="material-icons left">assessment</i>Panthéon des Héros</h5>
+            <ul class="collection">
+                <li class="collection-item avatar amber lighten-4">
+                    <i class="material-icons circle amber">star</i>
+                    <span class="title">Corbac le Conquérant</span>
+                    <p>2100 Points</p>
+                    <a href="#!" class="secondary-content">🥇</a>
+                </li>
+                <li class="collection-item avatar amber lighten-4">
+                    <i class="material-icons circle grey lighten-1">star_half</i>
+                    <span class="title">Elara la Sage</span>
+                    <p>1850 Points</p>
+                     <a href="#!" class="secondary-content">🥈</a>
+                </li>
+                <li class="collection-item avatar amber lighten-4">
+                    <i class="material-icons circle brown lighten-2">star_border</i>
+                    <span class="title">Bjorn le Bâtisseur</span>
+                    <p>1600 Points</p>
+                     <a href="#!" class="secondary-content">🥉</a>
+                </li>
             </ul>
-        </section>
+        </div>
+    </div>
 
-        <section id="leaderboard">
-            <h2>Classement du Foyer</h2>
-            <!-- Classement des membres -->
-            <ol>
-                <li>Membre 1 - 150 points</li>
-                <li>Membre 2 - 120 points</li>
-                <li>Membre 3 - 90 points</li>
-            </ol>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Compagnon Familial</p>
-    </footer>
-</body>
-</html>
+    <!-- Colonne de droite : Ajout de Tâches -->
+    <div class="col s12 l7">
+        <div class="card-panel amber lighten-5 z-depth-2">
+            <h5 class="custom-title"><i class="material-icons left">add_box</i>Ajouter une nouvelle quête</h5>
+            <form action="/tasks" method="POST">
+                <div class="input-field">
+                    <input id="task_name" name="task_name" type="text" class="validate" required>
+                    <label for="task_name">Nom de la quête</label>
+                </div>
+                <div class="input-field">
+                    <textarea id="task_description" name="task_description" class="materialize-textarea"></textarea>
+                    <label for="task_description">Description de la mission</label>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+                        <input id="task_points" name="task_points" type="number" value="10" min="1" class="validate" required>
+                        <label for="task_points">Récompense (XP)</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <select id="task_assignee" name="task_assignee">
+                            <option value="" disabled selected>Assigner à...</option>
+                            <option value="all">Toute la guilde</option>
+                            <option value="member1">Membre 1</option>
+                        </select>
+                        <label>Aventurier</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit" name="action">Lancer la quête
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau des quêtes -->
+<div class="row">
+    <div class="col s12">
+         <h4 class="custom-title center-align">Tableau des Quêtes</h4>
+    </div>
+    <!-- Carte de quête exemple 1 -->
+    <div class="col s12 m6 l4">
+        <div class="card-panel green lighten-5 hoverable">
+          <h5 class="custom-title">Ranger sa chambre</h5>
+          <p>Une mission périlleuse contre le chaos et le désordre.</p>
+          <div class="card-action">
+            <span class="amber-text text-darken-2"><b>15 XP ⚔️</b></span>
+            <a href="#" class="btn-floating btn-small waves-effect waves-light green right"><i class="material-icons">check</i></a>
+          </div>
+        </div>
+    </div>
+    <!-- Carte de quête exemple 2 -->
+    <div class="col s12 m6 l4">
+        <div class="card-panel blue lighten-5 hoverable">
+          <h5 class="custom-title">Mettre la table</h5>
+          <p>Préparer le campement pour le grand festin du soir.</p>
+          <div class="card-action">
+            <span class="amber-text text-darken-2"><b>5 XP ⚔️</b></span>
+            <a href="#" class="btn-floating btn-small waves-effect waves-light green right"><i class="material-icons">check</i></a>
+          </div>
+        </div>
+    </div>
+    <!-- Carte de quête terminée -->
+    <div class="col s12 m6 l4">
+        <div class="card-panel grey lighten-4 hoverable">
+          <h5 class="custom-title grey-text">Sortir les poubelles</h5>
+          <p class="grey-text">Évacuer les déchets toxiques de la forteresse.</p>
+          <div class="card-action grey-text">
+            <span><b>10 XP ✅</b></span>
+            <span class="right">Terminée</span>
+          </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

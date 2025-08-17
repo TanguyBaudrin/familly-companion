@@ -16,6 +16,7 @@ Le **compagnon de la famille** est une application web destinée à faciliter la
 ## Architecture technique
 
 - Application **100% codée en Python**.
+- Interface utilisateur construite avec **Materialize CSS**.
 - Structure en **architecture logicielle en couches** :
     - Composants front-end et back-end séparés.
 - Base de données : **SQLite**.

@@ -1,99 +1,89 @@
+/* --- Thème "Aventure" pour Materialize CSS --- */
+
+/* --- Polices personnalisées --- */
 body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
-    color: #333;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #fdfaf6; /* Fond parchemin clair */
+    background-image: url('https://www.transparenttextures.com/patterns/old-wall.png');
 }
 
-header h1 {
-    font-family: 'Pacifico', cursive;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    font-size: 3rem;
-    padding: 2rem;
-    text-align: center;
+.page-title {
+    font-family: 'MedievalSharp', cursive;
 }
 
-main {
-    padding: 2rem;
-    animation: fadeIn 1s ease-in-out;
+.custom-title {
+    font-family: 'MedievalSharp', cursive;
+    font-weight: 700;
 }
 
-.welcome {
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+/* --- Surcharge des couleurs Materialize --- */
+.brown.darken-2 {
+    background-color: #5d4037 !important;
 }
 
-.login-btn {
-    display: inline-block;
-    padding: 0.8rem 2rem;
-    background: linear-gradient(45deg, #ff6b6b, #f06595);
-    color: white;
-    text-decoration: none;
-    border-radius: 50px;
-    margin-top: 1rem;
-    font-weight: bold;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.brown.darken-3 {
+    background-color: #4e342e !important;
 }
 
-.login-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+.brown.darken-4 {
+    background-color: #3e2723 !important;
 }
 
-.features {
-    margin-top: 3rem;
-    text-align: center;
+.amber.lighten-5 {
+    background-color: #fff8e1 !important;
 }
 
-.feature-list {
+.amber.lighten-4 {
+    background-color: #ffecb3 !important;
+}
+
+/* --- Ajustements des composants --- */
+
+/* Cartes de quête */
+.card-panel {
+    border: 1px solid #d7ccc8; /* Bordure légère couleur pierre */
+    border-radius: 8px;
+}
+
+.card-panel.hoverable:hover {
+    box-shadow: 0 8px 17px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    transform: translateY(-3px);
+}
+
+.card-action {
+    background-color: transparent !important;
+    border-top: 1px solid rgba(0,0,0,0.1) !important;
     display: flex;
-    justify-content: space-around;
-    margin-top: 2rem;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.feature-item {
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 1.5rem;
-    border-radius: 15px;
-    width: 30%;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+/* Collection (Classement) */
+.collection {
+    border-radius: 8px;
+    border: 1px solid #d7ccc8;
 }
 
-.feature-item span {
-    font-size: 3rem;
+.collection .collection-item.avatar {
+    border-bottom: 1px solid #d7ccc8 !important;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.collection .collection-item.avatar:last-child {
+    border-bottom: none !important;
 }
 
-.form-container {
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    max-width: 500px;
-    margin: 2rem auto;
+/* Champs de formulaire */
+.input-field input[type=text]:focus + label,
+.input-field textarea:focus + label {
+    color: #795548 !important; /* Couleur du label au focus */
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+.input-field input[type=text]:focus,
+.input-field textarea:focus {
+    border-bottom: 1px solid #795548 !important;
+    box-shadow: 0 1px 0 0 #795548 !important;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+select:focus {
+    outline-color: #795548 !important;
 }

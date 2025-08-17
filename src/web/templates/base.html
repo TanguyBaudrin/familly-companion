@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Titre dynamique -->
+    <title>{% block title %}Héros du Foyer{% endblock %}</title>
+
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <header>
+        <nav class="brown darken-2">
+            <div class="nav-wrapper">
+                <a href="/" class="brand-logo center page-title">Héros du Foyer</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <!-- Liens de navigation dynamiques -->
+                    <li><a href="/">Tableau de Bord</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- Contenu spécifique à la page -->
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="page-footer brown darken-3">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <h5 class="white-text page-title">Héros du Foyer</h5>
+                    <p class="grey-text text-lighten-4">Rendre les tâches ménagères amusantes, une quête à la fois.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright brown darken-4">
+            <div class="container">
+                © 2025 Compagnon Familial
+            </div>
+        </div>
+    </footer>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser les composants Materialize (comme les select, modals, etc.)
+            var elems = document.querySelectorAll('select');
+            M.FormSelect.init(elems);
+        });
+    </script>
+    <!-- Scripts additionnels spécifiques à une page -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
