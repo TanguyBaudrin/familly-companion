@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict
 import pychromecast
 import logging
-from starlette.concurrency import run_in_threadpool # Import run_in_threadpool
+from starlette.concurrency import run_in_threadpool
+from src.core import schemas # Import schemas
 
 router = APIRouter()
 
@@ -39,20 +40,20 @@ async def get_cast_devices():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to discover devices: {e}")
 
 @router.post("/cast/start", status_code=status.HTTP_200_OK)
-async def start_cast(device_uuid: str, url: str):
+async def start_cast(request_body: schemas.CastRequest): # Modified signature
     """
     Starts casting a URL to a specific Chromecast device.
     """
     try:
-        cast = await run_in_threadpool(_get_chromecast_from_uuid_blocking, device_uuid)
+        cast = await run_in_threadpool(_get_chromecast_from_uuid_blocking, request_body.device_uuid) # Use request_body
         if not cast:
             raise HTTPException(status_code=404, detail="Chromecast device not found.")
 
         # wait_until_connected and set_display_url are also blocking
         await run_in_threadpool(cast.wait_until_connected)
-        await run_in_threadpool(cast.set_display_url, url)
+        await run_in_threadpool(cast.set_display_url, request_body.url) # Use request_body
 
-        return {"message": f"Successfully casted {url} to {cast.device.friendly_name}"}
+        return {"message": f"Successfully casted {request_body.url} to {cast.device.friendly_name}"}
     except pychromecast.exceptions.ChromecastConnectionError as e:
         logging.error(f"Chromecast connection error: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to connect to Chromecast: {e}")

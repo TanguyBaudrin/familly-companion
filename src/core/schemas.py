@@ -99,3 +99,7 @@ class TaskComplete(BaseModel):
 class RewardClaim(BaseModel):
     member_id: int
     reward_id: int
+
+class CastRequest(BaseModel):
+    device_uuid: str
+    url: str
