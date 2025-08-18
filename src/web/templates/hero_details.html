@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.name }} - Profil du Héros{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h4 class="custom-title center-align">Profil de {{ member.name }}</h4>
+
+    <!-- Statistiques Personnelles -->
+    <div class="row">
+        <div class="col s12">
+            <div class="card-panel amber lighten-5 z-depth-2 chart-card">
+                <h5 class="custom-title center-align">Suivi des Points Quotidiens</h5>
+                <div class="row center-align">
+                    <div class="col s12">
+                        <a id="weekly-btn" class="btn waves-effect waves-light brown darken-1">Semaine</a>
+                        <a id="monthly-btn" class="btn waves-effect waves-light brown darken-3">Mois</a>
+                    </div>
+                </div>
+                <div id="points-chart-loading" class="center-align">
+                    <div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="daily-points-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listes des Tâches -->
+    <div class="row">
+        <!-- Tâches en attente -->
+        <div class="col s12 m6">
+            <h5 class="custom-title">Quêtes en Cours 📜</h5>
+            <div id="pending-tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection with-header" id="pending-tasks-list">
+                <li class="collection-header"><h5>En attente</h5></li>
+                <!-- Les tâches seront chargées ici -->
+            </ul>
+        </div>
+        <!-- Tâches terminées -->
+        <div class="col s12 m6">
+            <h5 class="custom-title">Hauts Faits Accomplis ✅</h5>
+            <div id="completed-tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-red-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection with-header" id="completed-tasks-list">
+                <li class="collection-header"><h5>Terminées</h5></li>
+                <!-- Les tâches seront chargées ici -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Historique des récompenses -->
+    <div class="row">
+        <div class="col s12">
+            <h5 class="custom-title">Trésors Acquis 🎁</h5>
+            <div id="rewards-history-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-yellow-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+            <ul class="collection with-header" id="rewards-history-list">
+                <li class="collection-header"><h5>Récompenses</h5></li>
+                <!-- L'historique sera chargé ici -->
+            </ul>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/hero_details.js"></script>
+{% endblock %}

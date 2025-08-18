@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from src.core import schemas
 from sqlalchemy.orm import sessionmaker, Session
 from src.core.models import FamilyMember, Task, Reward, PointsHistory, TaskCompletion
@@ -212,3 +212,45 @@ def claim_reward(db: Session, member_id: int, reward_id: int):
 
 def get_points_history_for_member(db: Session, member_id: int):
     return db.query(PointsHistory).filter(PointsHistory.member_id == member_id).order_by(PointsHistory.timestamp.desc()).all()
+
+def get_tasks_for_member_by_status(db: Session, member_id: int, status: str):
+    """Récupère les tâches d'un membre avec un statut spécifique."""
+    return db.query(Task).filter(Task.assigned_to_id == member_id, Task.status == status).all()
+
+def get_daily_points_for_member(db: Session, member_id: int, period: str):
+    """Calcule les points journaliers gagnés par un membre sur une période."""
+    today = datetime.now(UTC)
+    if period == 'weekly':
+        start_date = today - timedelta(days=today.weekday())
+    elif period == 'monthly':
+        start_date = today.replace(day=1)
+    else:
+        return []
+
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    results = (
+        db.query(
+            func.strftime('%Y-%m-%d', PointsHistory.timestamp).label('date'),
+            func.sum(PointsHistory.points_change).label('total_points')
+        )
+        .filter(
+            PointsHistory.member_id == member_id,
+            PointsHistory.timestamp >= start_date,
+            PointsHistory.points_change > 0
+        )
+        .group_by(func.strftime('%Y-%m-%d', PointsHistory.timestamp))
+        .order_by(func.strftime('%Y-%m-%d', PointsHistory.timestamp))
+        .all()
+    )
+    return [{"date": str(date), "points": total_points} for date, total_points in results]
+
+def get_claimed_rewards_for_member(db: Session, member_id: int):
+    """Récupère l'historique des récompenses réclamées par un membre."""
+    return (
+        db.query(Reward.name, PointsHistory.timestamp)
+        .join(PointsHistory, Reward.id == PointsHistory.reward_id)
+        .filter(PointsHistory.member_id == member_id)
+        .order_by(PointsHistory.timestamp.desc())
+        .all()
+    )

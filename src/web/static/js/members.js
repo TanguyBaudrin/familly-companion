@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.className = 'collection-item';
                 li.innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span>${member.name}</span>
+                        <span><a href="/members/${member.id}" class="black-text">${member.name}</a></span>
                         <span class="member-actions">
                             <span class="points-text">${member.total_points} points ✨</span>
                             <a href="#!" class="btn-small waves-effect waves-light blue edit-member-btn" data-member-id="${member.id}" data-member-name="${member.name}" data-member-points="${member.total_points}"><i class="material-icons">edit</i></a>

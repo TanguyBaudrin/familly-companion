@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             members.forEach(member => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
-                li.innerHTML = `<div>${member.name}<span class="secondary-content">${member.total_points} points ✨</span></div>`;
+                li.innerHTML = `<div><a href="/members/${member.id}">${member.name}</a><span class="secondary-content">${member.total_points} points ✨</span></div>`;
                 leaderboardList.appendChild(li);
             });
         }

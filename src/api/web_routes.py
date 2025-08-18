@@ -36,6 +36,13 @@ async def manage_quests_rewards(request: Request):
 async def view_statistics(request: Request):
     return templates.TemplateResponse("statistiques.html", {"request": request})
 
+@router.get("/members/{member_id}", response_class=HTMLResponse)
+async def view_member_details(request: Request, member_id: int, db: Session = Depends(get_db)):
+    member = get_family_member_by_id(db, member_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Héros non trouvé")
+    return templates.TemplateResponse("hero_details.html", {"request": request, "member": member})
+
 # API Endpoints - Members
 
 @router.get("/api/members", response_model=List[schemas.FamilyMemberResponse])
