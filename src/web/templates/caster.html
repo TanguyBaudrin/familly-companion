@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Caster le Slideshow - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h4 class="custom-title center-align">Caster le Slideshow</h4>
+    <p class="center-align">Sélectionnez un appareil Chromecast pour y diffuser le slideshow.</p>
+
+    <div class="card-panel amber lighten-5 z-depth-2">
+        <h5 class="custom-title"><i class="material-icons left">cast</i>Appareils Disponibles</h5>
+        <div id="devices-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+        <ul class="collection" id="device-list">
+            <!-- Devices will be loaded here by JavaScript -->
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deviceList = document.getElementById('device-list');
+    const devicesLoading = document.getElementById('devices-loading');
+
+    async function fetchDevices() {
+        devicesLoading.style.display = 'block';
+        try {
+            const response = await fetch('/api/v1/cast/devices');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const devices = await response.json();
+            displayDevices(devices);
+        } catch (error) {
+            console.error('Failed to fetch devices:', error);
+            M.toast({ html: 'Erreur lors du chargement des appareils Cast.' });
+            deviceList.innerHTML = '<li class="collection-item">Aucun appareil trouvé ou erreur de connexion.</li>';
+        } finally {
+            devicesLoading.style.display = 'none';
+        }
+    }
+
+    function displayDevices(devices) {
+        deviceList.innerHTML = ''; // Clear previous list
+        if (devices.length === 0) {
+            deviceList.innerHTML = '<li class="collection-item">Aucun appareil Chromecast trouvé sur le réseau.</li>';
+            return;
+        }
+
+        devices.forEach(device => {
+            const listItem = document.createElement('li');
+            listItem.className = 'collection-item';
+            listItem.innerHTML = `
+                <div>
+                    ${device.name}
+                    <a href="#!" class="secondary-content cast-button" data-uuid="${device.uuid}">
+                        <i class="material-icons">cast</i> Caster le Slideshow
+                    </a>
+                </div>
+            `;
+            deviceList.appendChild(listItem);
+        });
+
+        // Add event listeners to cast buttons
+        document.querySelectorAll('.cast-button').forEach(button => {
+            button.addEventListener('click', handleCastClick);
+        });
+    }
+
+    async function handleCastClick(event) {
+        event.preventDefault();
+        const uuid = this.dataset.uuid;
+        // Construct the slideshow URL without menu
+        const slideshowUrl = `${window.location.origin}/slideshow?showMenu=false`;
+
+        M.toast({ html: `Lancement du cast sur ${this.closest('li').querySelector('div').firstChild.textContent.trim()}...` });
+
+        try {
+            const response = await fetch('/api/v1/cast/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ device_uuid: uuid, url: slideshowUrl })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            M.toast({ html: result.message });
+        } catch (error) {
+            console.error('Failed to start cast:', error);
+            M.toast({ html: `Erreur lors du cast: ${error.message}` });
+        }
+    }
+
+    fetchDevices();
+});
+</script>
+{% endblock %}

@@ -40,6 +40,10 @@ async def view_statistics(request: Request):
 async def view_slideshow(request: Request):
     return templates.TemplateResponse("slideshow.html", {"request": request})
 
+@router.get("/caster", response_class=HTMLResponse)
+async def view_caster(request: Request):
+    return templates.TemplateResponse("caster.html", {"request": request})
+
 @router.get("/members/{member_id}", response_class=HTMLResponse)
 async def view_member_details(request: Request, member_id: int, db: Session = Depends(get_db)):
     member = get_family_member_by_id(db, member_id)
