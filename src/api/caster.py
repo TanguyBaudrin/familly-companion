@@ -24,12 +24,16 @@ def _discover_chromecasts_blocking():
 def _get_chromecast_from_uuid_blocking(uuid_str: str):
     chromecasts, browser = pychromecast.discover_chromecasts()
     target_uuid = uuid.UUID(uuid_str)
-    found_cast = None
-    for cast in chromecasts:
-        if cast.uuid == target_uuid:
-            found_cast = cast
+    found_cast_info = None
+    for cast_info in chromecasts:
+        if cast_info.uuid == target_uuid:
+            found_cast_info = cast_info
             break
-    return found_cast
+    
+    if found_cast_info:
+        cast = pychromecast.get_chromecast_from_cast_info(found_cast_info)
+        return cast
+    return None
 
 @router.get("/cast/devices", response_model=List[Dict[str, str]])
 async def get_cast_devices():
