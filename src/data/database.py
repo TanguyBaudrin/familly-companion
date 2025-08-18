@@ -5,7 +5,7 @@ from src.core.models import FamilyMember, Task, Reward, PointsHistory, TaskCompl
 from datetime import datetime, UTC, timedelta
 from typing import Optional, List
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./heros_du_foyer.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./db/heros_du_foyer.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
