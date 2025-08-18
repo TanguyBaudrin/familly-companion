@@ -1,3 +1,29 @@
+/* Espacement horizontal pour les boutons d'action récompenses (dashboard) */
+.reward-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reward-actions .reward-desc-text {
+    margin-right: 12px;
+    color: #4e857a;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+/* Espacement horizontal pour les boutons d'action quêtes */
+.quest-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quest-actions .quest-status-text {
+    margin-right: 12px;
+    color: #4e857a;
+    font-weight: 500;
+    font-size: 1.1em;
+}
 /* Espacement horizontal pour les boutons d'action membres */
 .member-actions {
     display: flex;

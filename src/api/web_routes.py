@@ -30,11 +30,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def read_root(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
-@router.get("/members", response_class=HTMLResponse) # New route for members management page
+@router.get("/members", response_class=HTMLResponse)
 async def manage_members(request: Request):
     return templates.TemplateResponse("members.html", {"request": request})
 
-@router.get("/quests-rewards", response_class=HTMLResponse) # New route for quests and rewards management page
+@router.get("/quests-rewards", response_class=HTMLResponse)
 async def manage_quests_rewards(request: Request):
     return templates.TemplateResponse("quests_rewards.html", {"request": request})
 
@@ -105,16 +105,14 @@ def delete_task_api(task_id: int, db: Session = Depends(get_db), current_user: d
     return
 
 @router.post("/api/tasks/{task_id}/complete", response_model=schemas.TaskResponse)
-def complete_task_api(task_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    completed_task = complete_task(db, task_id)
-    if completed_task is None:
-        # Differentiate between not found and expired
-        task = get_task_by_id(db, task_id)
-        if task and task.status == 'pending' and is_task_expired(task):
-            raise HTTPException(status_code=400, detail="Task is expired and cannot be completed")
-        else:
+def complete_task_api(task_id: int, completion_data: schemas.TaskComplete, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    try:
+        completed_task = complete_task(db, task_id=task_id, completions=completion_data.completions)
+        if completed_task is None:
             raise HTTPException(status_code=404, detail="Task not found or already completed")
-    return completed_task
+        return completed_task
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # API Endpoints - Rewards
 
@@ -132,7 +130,7 @@ def read_reward(reward_id: int, db: Session = Depends(get_db), current_user: dic
 
 @router.post("/api/rewards", response_model=schemas.RewardResponse, status_code=status.HTTP_201_CREATED)
 def add_reward(reward: schemas.RewardCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_reward = create_reward(db, name=reward.name, cost=reward.cost, description=reward.description) # Pass description directly
+    db_reward = create_reward(db, name=reward.name, cost=reward.cost, description=reward.description)
     return db_reward
 
 @router.put("/api/rewards/{reward_id}", response_model=schemas.RewardResponse)
@@ -158,5 +156,5 @@ def claim_reward_api(member_id: int, reward_id: int, db: Session = Depends(get_d
 
 @router.get("/api/leaderboard", response_model=List[schemas.FamilyMemberResponse])
 def get_leaderboard(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    leaderboard = get_family_members(db) # Already sorted by total_points desc
+    leaderboard = get_family_members(db)
     return leaderboard

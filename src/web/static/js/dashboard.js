@@ -1,7 +1,8 @@
-// src/web/static/js/dashboard.js
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Dashboard script loaded.');
+
+    // Initialize Materialize components
+    const assignUserModal = M.Modal.init(document.getElementById('assign-user-modal'));
 
     // Get loading indicator elements
     const leaderboardLoading = document.getElementById('leaderboard-loading');
@@ -17,11 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (element) element.style.display = 'none';
     }
 
+    // Helper function to format duration
+    function formatDuration(value, unit) {
+        if (value && unit) {
+            return `(${value} ${unit})`;
+        }
+        return '';
+    }
+
     // Function to fetch data from API
     async function fetchData(url, options = {}) {
         try {
-            // For now, we'll use a dummy token. In a real app, this would come from login.
-            const token = 'dummy-token'; 
+            const token = 'dummy-token';
             const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -33,8 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
             }
-            // For DELETE requests, response.json() might fail if no content is returned
-            if (options.method === 'DELETE') {
+            if (options.method === 'DELETE' || response.status === 204) {
                 return true;
             }
             return await response.json();
@@ -51,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const members = await fetchData('/api/leaderboard');
         const leaderboardList = document.getElementById('leaderboard-list');
         if (leaderboardList && members) {
-            leaderboardList.innerHTML = ''; // Clear existing content
+            leaderboardList.innerHTML = '';
             members.forEach(member => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
@@ -66,60 +73,257 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTasks() {
         showLoading(tasksLoading);
         const tasks = await fetchData('/api/tasks');
-        const taskList = document.getElementById('task-list');
-        if (taskList && tasks) {
-            taskList.innerHTML = '';
-            tasks.forEach(task => {
-                const li = document.createElement('li');
-                li.className = 'collection-item';
-                let statusText = task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳';
-                let completeButton = '';
-                if (task.status !== 'completed') {
-                    completeButton = `<a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light green" data-task-id="${task.id}"><i class="material-icons">check</i></a>`;
-                }
-                li.innerHTML = `<div>${task.description} 📝 - ${task.points} points <span class="secondary-content">Statut: ${statusText}</span>${completeButton}</div>`;
-                taskList.appendChild(li);
+        const members = await fetchData('/api/members');
+        const questsByPersonContainer = document.getElementById('quests-by-person-container');
+
+        const memberMap = new Map();
+        if (members) {
+            members.forEach(member => {
+                memberMap.set(member.id, member.name);
             });
+        }
+
+        const groupedTasks = {
+            unassigned: []
+        };
+
+        if (tasks) {
+            tasks.forEach(task => {
+                if (task.assigned_to_id) {
+                    if (!groupedTasks[task.assigned_to_id]) {
+                        groupedTasks[task.assigned_to_id] = [];
+                    }
+                    groupedTasks[task.assigned_to_id].push(task);
+                } else {
+                    groupedTasks.unassigned.push(task);
+                }
+            });
+        }
+
+        if (questsByPersonContainer) {
+            questsByPersonContainer.innerHTML = ''; // Clear previous content
+
+            // Render unassigned tasks first
+            if (groupedTasks.unassigned.length > 0) {
+                const unassignedSection = document.createElement('div');
+                unassignedSection.className = 'col s12 m6';
+                unassignedSection.innerHTML = `
+                    <div class="card-panel grey lighten-4 z-depth-1">
+                        <h5 class="custom-title">Tâches non assignées (Famille) 👨‍👩‍👧‍👦</h5>
+                        <ul class="collection">
+                            ${groupedTasks.unassigned.map(task => `
+                                <li class="collection-item">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <span>${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}</span>
+                                        <span class="quest-actions">
+                                            <span class="quest-status-text">Statut: ${task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳'}</span>
+                                            ${task.status !== 'completed' ? `<a href="#!" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
+                                        </span>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                questsByPersonContainer.appendChild(unassignedSection);
+            }
+
+            // Render tasks for each person
+            memberMap.forEach((memberName, memberId) => {
+                const memberTasks = groupedTasks[memberId];
+                if (memberTasks && memberTasks.length > 0) {
+                    const memberSection = document.createElement('div');
+                    memberSection.className = 'col s12 m6';
+                    memberSection.innerHTML = `
+                        <div class="card-panel light-blue lighten-5 z-depth-1">
+                            <h5 class="custom-title">Quêtes de ${memberName} 🧑‍🚀</h5>
+                            <ul class="collection">
+                                ${memberTasks.map(task => `
+                                    <li class="collection-item">
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            <span>${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}</span>
+                                            <span class="quest-actions">
+                                                <span class="quest-status-text">Statut: ${task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳'}</span>
+                                                ${task.status !== 'completed' ? `<a href="#!" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
+                                            </span>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    questsByPersonContainer.appendChild(memberSection);
+                }
+            });
+
             // Add event listeners for complete buttons
-            document.querySelectorAll('#task-list .btn-floating').forEach(button => {
+            document.querySelectorAll('.complete-task-btn').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const taskId = event.currentTarget.dataset.taskId;
-                    const result = await fetchData(`/api/tasks/${taskId}/complete`, { method: 'POST' });
-                    if (result) {
-                        M.toast({html: 'Tâche marquée comme terminée! ✅', classes: 'green darken-1'});
-                        loadTasks(); // Reload tasks to update status
-                        loadLeaderboard(); // Reload leaderboard to update points
+                    const assignedToId = event.currentTarget.dataset.assignedTo;
+
+                    if (assignedToId && assignedToId !== 'null') {
+                        // Task is assigned, complete it directly
+                        const result = await fetchData(`/api/tasks/${taskId}/complete`, { 
+                            method: 'POST',
+                            body: JSON.stringify({ completions: [{ member_id: parseInt(assignedToId), percentage: 100 }] })
+                        });
+                        if (result) {
+                            M.toast({html: 'Tâche marquée comme terminée! ✅', classes: 'green darken-1'});
+                            loadTasks();
+                            loadLeaderboard();
+                        }
+                    } else {
+                        // Task is not assigned, open modal to select user
+                        openAssignUserModal(taskId);
                     }
                 });
             });
+
+            
         }
         hideLoading(tasksLoading);
     }
+
+    // Open modal to assign user to a task
+    async function openAssignUserModal(taskId) {
+        const members = await fetchData('/api/members');
+        const userSelectionList = document.getElementById('user-selection-list');
+        if (userSelectionList && members) {
+            userSelectionList.innerHTML = '';
+            members.forEach(member => {
+                const div = document.createElement('div');
+                div.classList.add('row', 'valign-wrapper');
+                div.innerHTML = `
+                    <div class="col s8">
+                        <label>
+                            <input type="checkbox" class="filled-in member-checkbox" data-member-id="${member.id}" />
+                            <span>${member.name}</span>
+                        </label>
+                    </div>
+                    <div class="col s4">
+                        <div class="input-field inline" style="margin-top: 0;">
+                            <input id="percentage-${member.id}" type="number" class="percentage-input" min="0" max="100" value="0" style="width: 80px; text-align: right; padding-right: 5px;" disabled>
+                            <label for="percentage-${member.id}">%</label>
+                        </div>
+                    </div>
+                `;
+                userSelectionList.appendChild(div);
+            });
+
+            document.querySelectorAll('.member-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const memberId = checkbox.dataset.memberId;
+                    const percentageInput = document.getElementById(`percentage-${memberId}`);
+                    percentageInput.disabled = !checkbox.checked;
+                    if (!checkbox.checked) {
+                        percentageInput.value = 0;
+                    }
+                    updateTotalPercentage();
+                });
+            });
+
+            document.querySelectorAll('.percentage-input').forEach(input => {
+                input.addEventListener('input', updateTotalPercentage);
+            });
+
+            document.getElementById('confirm-assign-user').dataset.taskId = taskId;
+            const modal = M.Modal.getInstance(document.getElementById('assign-user-modal'));
+            modal.open();
+        }
+    }
+
+    function updateTotalPercentage() {
+        let total = 0;
+        document.querySelectorAll('.percentage-input').forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        document.getElementById('percentage-total').textContent = total;
+    }
+
+    document.getElementById('distribute-evenly-btn').addEventListener('click', () => {
+        const checkedCheckboxes = document.querySelectorAll('.member-checkbox:checked');
+        const count = checkedCheckboxes.length;
+        if (count > 0) {
+            const percentage = Math.floor(100 / count);
+            const remainder = 100 % count;
+            checkedCheckboxes.forEach((checkbox, index) => {
+                const memberId = checkbox.dataset.memberId;
+                const percentageInput = document.getElementById(`percentage-${memberId}`);
+                percentageInput.value = index < remainder ? percentage + 1 : percentage;
+            });
+            updateTotalPercentage();
+        }
+    });
+
+    // Handle confirm button in assign user modal
+    document.getElementById('confirm-assign-user').addEventListener('click', async () => {
+        const taskId = document.getElementById('confirm-assign-user').dataset.taskId;
+        const completions = [];
+        let totalPercentage = 0;
+        document.querySelectorAll('.member-checkbox:checked').forEach(checkbox => {
+            const memberId = checkbox.dataset.memberId;
+            const percentage = parseInt(document.getElementById(`percentage-${memberId}`).value) || 0;
+            totalPercentage += percentage;
+            completions.push({ member_id: parseInt(memberId), percentage: percentage });
+        });
+
+        if (totalPercentage !== 100) {
+            M.toast({html: 'Le total des pourcentages doit être de 100%. 💯', classes: 'red darken-1'});
+            return;
+        }
+
+        if (completions.length > 0) {
+            const result = await fetchData(`/api/tasks/${taskId}/complete`, {
+                method: 'POST',
+                body: JSON.stringify({ completions: completions })
+            });
+
+            if (result) {
+                M.toast({html: 'Tâche marquée comme terminée! ✅', classes: 'green darken-1'});
+                const modal = M.Modal.getInstance(document.getElementById('assign-user-modal'));
+                modal.close();
+                loadTasks();
+                loadLeaderboard();
+            }
+        } else {
+            M.toast({html: 'Veuillez sélectionner au moins un membre. 👤', classes: 'red darken-1'});
+        }
+    });
 
     // Fetch and display rewards
     async function loadRewards() {
         showLoading(rewardsLoading);
         const rewards = await fetchData('/api/rewards');
         const rewardList = document.getElementById('reward-list');
+
         if (rewardList && rewards) {
             rewardList.innerHTML = '';
             rewards.forEach(reward => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
-                li.innerHTML = `<div>${reward.name} 🎁 - ${reward.cost} points <span class="secondary-content">${reward.description || ''}</span><a href="#!" class="secondary-content btn-floating btn-small waves-effect waves-light blue" data-reward-id="${reward.id}"><i class="material-icons">card_giftcard</i></a></div>`;
+                li.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>${reward.name} 🎁 - ${reward.cost} points</span>
+                        <span class="reward-actions">
+                            <span class="reward-desc-text">${reward.description || ''}</span>
+                            <a href="#" class="btn-small waves-effect waves-light blue" data-reward-id="${reward.id}" title="Réclamer la récompense"><i class="material-icons">card_giftcard</i></a>
+                        </span>
+                    </div>
+                `;
                 rewardList.appendChild(li);
             });
+
             // Add event listeners for claim buttons
             document.querySelectorAll('#reward-list .btn-floating').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const rewardId = event.currentTarget.dataset.rewardId;
-                    // For now, assume member_id 1 for testing. This should be dynamic.
-                    const memberId = 1; 
+                    const memberId = 1; // This should be dynamic
                     const result = await fetchData(`/api/members/${memberId}/claim_reward/${rewardId}`, { method: 'POST' });
                     if (result) {
                         M.toast({html: 'Récompense réclamée! 🎁', classes: 'blue darken-1'});
-                        loadRewards(); // Reload rewards
-                        loadLeaderboard(); // Reload leaderboard to update points
+                        loadRewards();
+                        loadLeaderboard();
                     }
                 });
             });
@@ -133,7 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (assigneeSelect) {
             const members = await fetchData('/api/members');
             if (members) {
-                // Clear existing options except the first disabled one
                 assigneeSelect.innerHTML = '<option value="" disabled selected>Assigner à...</option>';
                 members.forEach(member => {
                     const option = document.createElement('option');
@@ -141,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     option.textContent = member.name;
                     assigneeSelect.appendChild(option);
                 });
-                M.FormSelect.init(assigneeSelect); // Re-initialize Materialize select
+                M.FormSelect.init(assigneeSelect);
             }
         }
     }
@@ -150,11 +353,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTaskForm = document.getElementById('add-task-form');
     if (addTaskForm) {
         addTaskForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
             const description = document.getElementById('task_name').value;
             const points = parseInt(document.getElementById('task_points').value);
-            const assignedToId = parseInt(document.getElementById('task_assignee').value); // Assuming member ID for now
+            const assignedToId = parseInt(document.getElementById('task_assignee').value);
 
             if (!description || isNaN(points) || isNaN(assignedToId)) {
                 M.toast({html: 'Veuillez remplir tous les champs de la tâche. 📝', classes: 'red darken-1'});
@@ -174,9 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result) {
                 M.toast({html: 'Nouvelle tâche ajoutée! ✨', classes: 'green darken-1'});
-                addTaskForm.reset(); // Clear form
-                loadTasks(); // Reload tasks
-                M.FormSelect.init(document.querySelectorAll('select')); // Re-initialize selects after reset
+                addTaskForm.reset();
+                loadTasks();
+                M.FormSelect.init(document.querySelectorAll('select'));
             }
         });
     }
@@ -185,5 +388,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
     loadTasks();
     loadRewards();
-    populateAssigneeDropdown(); // Populate assignee dropdown on load
+    populateAssigneeDropdown();
 });

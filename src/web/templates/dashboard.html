@@ -6,7 +6,7 @@
 <div class="row">
 
     <!-- Colonne de gauche : Profil et Classement -->
-    <div class="col s12 l5">
+    <div class="col s12">
         
 
         <!-- Classement -->
@@ -19,63 +19,14 @@
         </div>
     </div>
 
-    <!-- Colonne de droite : Ajout de Tâches -->
-    <div class="col s12 l7">
-        <div class="card-panel amber lighten-5 z-depth-2">
-            <h5 class="custom-title"><i class="material-icons left">add_box</i>Ajouter une nouvelle Quête ✨</h5>
-            <form id="add-task-form">
-                <div class="input-field">
-                    <input id="task_name" name="task_name" type="text" class="validate" required>
-                    <label for="task_name">Nom de la quête</label>
-                </div>
-                <div class="input-field">
-                    <textarea id="task_description" name="task_description" class="materialize-textarea"></textarea>
-                    <label for="task_description">Description de la mission</label>
-                </div>
-                <div class="row">
-                    <div class="input-field col s6">
-                        <input id="task_points" name="task_points" type="number" value="10" min="1" class="validate" required>
-                        <label for="task_points">Récompense (XP)</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <select id="task_assignee" name="task_assignee">
-                            <option value="" disabled selected>Assigner à...</option>
-                            <!-- Member options will be dynamically loaded here by JavaScript -->
-                        </select>
-                        <label>Aventurier</label>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="input-field col s6">
-                        <input id="task_duration_value" name="task_duration_value" type="number" min="1" class="validate">
-                        <label for="task_duration_value">Durée</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <select id="task_duration_unit" name="task_duration_unit">
-                            <option value="" disabled selected>Unité de durée</option>
-                            <option value="days">Jours</option>
-                            <option value="weeks">Semaines</option>
-                            <option value="months">Mois</option>
-                        </select>
-                        <label>Unité</label>
-                    </div>
-                </div>
-                <button class="btn waves-effect waves-light brown darken-1" type="submit" name="action">Lancer la quête
-                    <i class="material-icons right">send</i>
-                </button>
-            </form>
-        </div>
-    </div>
 </div>
 
-<!-- Tableau des quêtes -->
+<!-- Tableau des quêtes par personne -->
 <div class="row">
-    <div class="col s12">
-         <h4 class="custom-title center-align">Tableau des Quêtes 📜</h4>
-         <div id="tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
-         <ul class="collection" id="task-list">
-            <!-- Task items will be loaded here by JavaScript -->
-         </ul>
+    <div class="col s12" id="quests-by-person-container">
+        <h4 class="custom-title center-align">Tableau des Quêtes 📜</h4>
+        <div id="tasks-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
+        <!-- Quests will be loaded here by JavaScript, grouped by person -->
     </div>
 </div>
 
@@ -88,6 +39,23 @@
             <!-- Reward items will be loaded here by JavaScript -->
         </ul>
     </div>
+</div>
+
+<!-- Modal Structure -->
+<div id="assign-user-modal" class="modal">
+  <div class="modal-content">
+    <h4>Répartir les points</h4>
+    <p>Sélectionnez les membres et ajustez le pourcentage de points pour chacun.</p>
+    <div id="user-selection-list">
+        <!-- User selection will be populated by JavaScript -->
+    </div>
+    <p>Total: <span id="percentage-total">0</span>%</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" id="distribute-evenly-btn" class="btn-flat waves-effect waves-green">Répartir équitablement</a>
+    <a href="#!" class="modal-close waves-effect waves-red btn-flat">Annuler</a>
+    <a href="#!" id="confirm-assign-user" class="waves-effect waves-green btn">Valider</a>
+  </div>
 </div>
 
 <script src="{{ url_for('static', path='/js/dashboard.js') }}"></script>

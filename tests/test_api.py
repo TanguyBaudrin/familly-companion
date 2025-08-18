@@ -226,9 +226,10 @@ def test_complete_task():
     db.close()
 
     response = client.post(
-        f"/api/tasks/{task.id}/complete",
-        headers={"Authorization": "Bearer dummy-token"}
-    )
+            f"/api/tasks/{task.id}/complete",
+            headers={"Authorization": "Bearer dummy-token"},
+            json={"completions": [{"member_id": member_id, "percentage": 100}]}
+        )
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
     

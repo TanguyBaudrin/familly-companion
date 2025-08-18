@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
-from sqlalchemy.orm import relationship, declarative_base # Import declarative_base from sqlalchemy.orm
-from datetime import datetime, UTC # Import datetime and UTC
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship, declarative_base
+from datetime import datetime, UTC
 
 Base = declarative_base()
 
@@ -12,21 +12,22 @@ class FamilyMember(Base): # type: ignore
 
     tasks = relationship("Task", back_populates="assigned_to")
     points_history = relationship("PointsHistory", back_populates="member")
+    completions = relationship("TaskCompletion", back_populates="member")
 
 class Task(Base): # type: ignore
     __tablename__ = 'tasks'
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String, nullable=False)
     points = Column(Integer, nullable=False)
-    assigned_to_id = Column(Integer, ForeignKey('family_members.id'))
+    assigned_to_id = Column(Integer, ForeignKey('family_members.id'), nullable=True) # Allow tasks to be unassigned
     status = Column(String, default='pending') # e.g., 'pending', 'completed'
-    created_at = Column(DateTime, default=lambda: datetime.now(UTC)) # Use datetime.now(UTC)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     completed_at = Column(DateTime, nullable=True)
-    duration_value = Column(Integer, nullable=True) # New field for duration value
-    duration_unit = Column(String, nullable=True) # New field for duration unit (e.g., 'days', 'weeks', 'months')
+    duration_value = Column(Integer, nullable=True)
+    duration_unit = Column(String, nullable=True)
 
     assigned_to = relationship("FamilyMember", back_populates="tasks")
-    points_history = relationship("PointsHistory", back_populates="task")
+    completions = relationship("TaskCompletion", back_populates="task")
 
 class Reward(Base): # type: ignore
     __tablename__ = 'rewards'
@@ -35,16 +36,27 @@ class Reward(Base): # type: ignore
     cost = Column(Integer, nullable=False)
     description = Column(String, nullable=True)
 
+class TaskCompletion(Base): # type: ignore
+    __tablename__ = 'task_completions'
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey('tasks.id'), nullable=False)
+    member_id = Column(Integer, ForeignKey('family_members.id'), nullable=False)
+    completed_at = Column(DateTime, default=lambda: datetime.now(UTC))
+
+    task = relationship("Task", back_populates="completions")
+    member = relationship("FamilyMember", back_populates="completions")
+    points_history = relationship("PointsHistory", back_populates="completion")
+
 class PointsHistory(Base): # type: ignore
     __tablename__ = 'points_history'
     id = Column(Integer, primary_key=True, index=True)
     member_id = Column(Integer, ForeignKey('family_members.id'), nullable=False)
-    task_id = Column(Integer, ForeignKey('tasks.id'), nullable=True)
+    task_completion_id = Column(Integer, ForeignKey('task_completions.id'), nullable=True)
     reward_id = Column(Integer, ForeignKey('rewards.id'), nullable=True)
     points_change = Column(Integer, nullable=False)
     reason = Column(String, nullable=False)
-    timestamp = Column(DateTime, default=lambda: datetime.now(UTC)) # Use datetime.now(UTC)
+    timestamp = Column(DateTime, default=lambda: datetime.now(UTC))
 
     member = relationship("FamilyMember", back_populates="points_history")
-    task = relationship("Task", back_populates="points_history")
-    reward = relationship("Reward") # No back_populates needed if Reward doesn't need to know about PointsHistory
+    completion = relationship("TaskCompletion", back_populates="points_history")
+    reward = relationship("Reward")

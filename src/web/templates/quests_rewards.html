@@ -21,7 +21,7 @@
                     </div>
                     <div class="input-field">
                         <select id="task_assigned_to_id">
-                            <option value="" disabled selected>Assigner à...</option>
+                            <option value="" disabled selected>Pour toute la famille</option>
                             <!-- Members will be loaded here -->
                         </select>
                         <label>Assigner à</label>
@@ -78,7 +78,7 @@
                 <li class="collection-item">
                     <div>Ranger sa chambre<span class="secondary-content">15 points ✨</span></div>
                     <a href="#!" class="btn-small waves-effect waves-light green use-task-example" 
-                       data-description="Ranger sa chambre" data-points="15">
+                       data-description="Ranger sa chambre" data-points="15" style="margin-left: 10px;">
                        Utiliser cet exemple
                     </a>
                 </li>
@@ -316,7 +316,7 @@
                 </div>
                 <div class="input-field">
                     <select id="edit_task_assigned_to_id">
-                        <option value="" disabled selected>Assigner à...</option>
+                        <option value="" disabled selected>Pour toute la famille</option>
                         <!-- Members will be loaded here -->
                     </select>
                     <label>Assigner à</label>
@@ -335,7 +335,7 @@
         </div>
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
-        }
+        </div>
     </div>
 
     <!-- Edit Reward Modal Structure -->
@@ -358,6 +358,26 @@
                 </div>
                 <button class="btn waves-effect waves-light brown darken-1" type="submit">Sauvegarder
                     <i class="material-icons right">save</i>
+                </button>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Annuler</a>
+        </div>
+    </div>
+
+    <!-- Complete Task Modal Structure -->
+    <div id="complete-task-modal" class="modal">
+        <div class="modal-content">
+            <h4>Valider la quête</h4>
+            <p>Qui a réalisé cette quête ?</p>
+            <form id="complete-task-form">
+                <input type="hidden" id="complete_task_id">
+                <div id="members-checkboxes">
+                    <!-- Member checkboxes will be loaded here -->
+                </div>
+                <button class="btn waves-effect waves-light brown darken-1" type="submit">Valider
+                    <i class="material-icons right">check</i>
                 </button>
             </form>
         </div>

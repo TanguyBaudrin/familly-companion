@@ -9,13 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const addRewardForm = document.getElementById('add-reward-form');
     const editTaskModal = document.getElementById('edit-task-modal');
     const editRewardModal = document.getElementById('edit-reward-modal');
+    const completeTaskModal = document.getElementById('complete-task-modal');
     const editTaskForm = document.getElementById('edit-task-form');
     const editRewardForm = document.getElementById('edit-reward-form');
+    const completeTaskForm = document.getElementById('complete-task-form');
     const tasksLoading = document.getElementById('tasks-loading');
     const rewardsLoading = document.getElementById('rewards-loading');
 
     let editTaskModalInstance;
     let editRewardModalInstance;
+    let completeTaskModalInstance;
 
     // Initialize Materialize Modals
     if (editTaskModal) {
@@ -23,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (editRewardModal) {
         editRewardModalInstance = M.Modal.init(editRewardModal);
+    }
+    if (completeTaskModal) {
+        completeTaskModalInstance = M.Modal.init(completeTaskModal);
     }
 
     // Function to show/hide loading indicators
@@ -49,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
             }
-            if (options.method === 'DELETE') {
+            if (options.method === 'DELETE' || response.status === 204) {
                 return true;
             }
             return await response.json();
@@ -63,19 +69,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate member dropdowns (for tasks)
     async function populateMemberDropdowns() {
         const members = await fetchData('/api/members');
-        const taskAssigneeSelect = document.getElementById('task_assigned_to_id');
-        const editTaskAssigneeSelect = document.getElementById('edit_task_assigned_to_id');
+        const selects = [
+            document.getElementById('task_assigned_to_id'),
+            document.getElementById('edit_task_assigned_to_id')
+        ];
 
         if (members) {
-            [taskAssigneeSelect, editTaskAssigneeSelect].forEach(selectElement => {
+            selects.forEach(selectElement => {
                 if (selectElement) {
-                    selectElement.innerHTML = '<option value="" disabled selected>Assigner à...</option>';
+                    const instance = M.FormSelect.getInstance(selectElement);
+                    if (instance) {
+                        instance.destroy();
+                    }
+
+                    const currentValue = selectElement.value;
+                    
+                    // Clear existing options but keep the first one
+                    while (selectElement.options.length > 1) {
+                        selectElement.remove(1);
+                    }
+
                     members.forEach(member => {
                         const option = document.createElement('option');
                         option.value = member.id;
                         option.textContent = member.name;
                         selectElement.appendChild(option);
                     });
+
+                    selectElement.value = currentValue;
                     M.FormSelect.init(selectElement);
                 }
             });
@@ -86,58 +107,104 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTasks() {
         showLoading(tasksLoading);
         const tasks = await fetchData('/api/tasks');
-        if (tasksList && tasks) {
+        const members = await fetchData('/api/members');
+
+        if (tasksList && tasks && members) {
             tasksList.innerHTML = '';
             for (const task of tasks) {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
-                const assignedMember = await fetchData(`/api/members/${task.assigned_to_id}`);
-                const assignedToName = assignedMember ? assignedMember.name : 'Inconnu';
-                li.innerHTML = `
-                    <div>
-                        ${task.description} - ${task.points} points ✨ <span class="secondary-content">Assigné à: ${assignedToName} - Statut: ${task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳'}</span>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light blue edit-task-btn" data-task-id="${task.id}" data-task-description="${task.description}" data-task-points="${task.points}" data-task-assigned-to-id="${task.assigned_to_id}" data-task-status="${task.status}"><i class="material-icons">edit</i></a>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light red delete-task-btn" data-task-id="${task.id}"><i class="material-icons">delete</i></a>
-                    </div>
-                `;
+
+                let assignedToName = 'Toute la famille';
+                if (task.assigned_to_id) {
+                    const assignedMember = members.find(m => m.id === task.assigned_to_id);
+                    assignedToName = assignedMember ? assignedMember.name : 'Inconnu';
+                }
+
+                let completedBy = '';
+                if (task.completions.length > 0) {
+                    const completerNames = task.completions.map(c => {
+                        const member = members.find(m => m.id === c.member_id);
+                        return member ? member.name : 'Inconnu';
+                    });
+                    completedBy = `Terminée par: ${completerNames.join(', ')} ✅`;
+                }
+
+                li.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between;"><span>${task.description} - ${task.points} points ✨</span><span class="quest-actions"><span class="quest-status-text">Assigné à: ${assignedToName} - Statut: ${task.status === 'completed' ? completedBy : 'En cours ⏳'}</span><a href="#!" class="btn-small waves-effect waves-light blue edit-task-btn" data-task-id="${task.id}"><i class="material-icons">edit</i></a><a href="#!" class="btn-small waves-effect waves-light red delete-task-btn" data-task-id="${task.id}"><i class="material-icons">delete</i></a>${task.status !== 'completed' ? `<a href="#!" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to-id="${task.assigned_to_id || ''}"><i class="material-icons">check</i></a>` : ''}</span></div>`;
                 tasksList.appendChild(li);
             }
 
-            // Attach event listeners for edit and delete buttons
-            document.querySelectorAll('.edit-task-btn').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    const taskId = event.currentTarget.dataset.taskId;
-                    const taskDescription = event.currentTarget.dataset.taskDescription;
-                    const taskPoints = event.currentTarget.dataset.taskPoints;
-                    const taskAssignedToId = event.currentTarget.dataset.taskAssignedToId;
-                    const taskStatus = event.currentTarget.dataset.taskStatus;
-                    
-                    document.getElementById('edit_task_id').value = taskId;
-                    document.getElementById('edit_task_description').value = taskDescription;
-                    document.getElementById('edit_task_points').value = taskPoints;
-                    document.getElementById('edit_task_assigned_to_id').value = taskAssignedToId;
-                    document.getElementById('edit_task_status').value = taskStatus;
-                    M.updateTextFields();
-                    M.FormSelect.init(document.getElementById('edit_task_assigned_to_id'));
-                    M.FormSelect.init(document.getElementById('edit_task_status'));
-                    editTaskModalInstance.open();
-                });
-            });
-
-            document.querySelectorAll('.delete-task-btn').forEach(button => {
-                button.addEventListener('click', async (event) => {
-                    const taskId = event.currentTarget.dataset.taskId;
-                    if (confirm('Êtes-vous sûr de vouloir supprimer cette quête ? 🗑️')) {
-                        const result = await fetchData(`/api/tasks/${taskId}`, { method: 'DELETE' });
-                        if (result) {
-                            M.toast({html: 'Quête supprimée! 💥', classes: 'green darken-1'});
-                            loadTasks();
-                        }
-                    }
-                });
-            });
+            // Attach event listeners for buttons
+            attachTaskButtonListeners();
         }
         hideLoading(tasksLoading);
+    }
+
+    function attachTaskButtonListeners() {
+        document.querySelectorAll('.edit-task-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const taskId = event.currentTarget.closest('li').querySelector('.edit-task-btn').dataset.taskId;
+                const task = await fetchData(`/api/tasks/${taskId}`);
+                if (!task) return;
+
+                document.getElementById('edit_task_id').value = task.id;
+                document.getElementById('edit_task_description').value = task.description;
+                document.getElementById('edit_task_points').value = task.points;
+                document.getElementById('edit_task_assigned_to_id').value = task.assigned_to_id || '';
+                document.getElementById('edit_task_status').value = task.status;
+                M.updateTextFields();
+                // Re-initialize select elements
+                const assignedToSelect = document.getElementById('edit_task_assigned_to_id');
+                const statusSelect = document.getElementById('edit_task_status');
+                M.FormSelect.init(assignedToSelect);
+                M.FormSelect.init(statusSelect);
+                editTaskModalInstance.open();
+            });
+        });
+
+        document.querySelectorAll('.delete-task-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const taskId = event.currentTarget.closest('li').querySelector('.delete-task-btn').dataset.taskId;
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette quête ? 🗑️')) {
+                    const result = await fetchData(`/api/tasks/${taskId}`, { method: 'DELETE' });
+                    if (result) {
+                        M.toast({html: 'Quête supprimée! 💥', classes: 'green darken-1'});
+                        loadTasks();
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.complete-task-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const taskId = event.currentTarget.dataset.taskId;
+                const assignedToId = event.currentTarget.dataset.assignedToId;
+                openCompleteTaskModal(taskId, assignedToId);
+            });
+        });
+    }
+
+    async function openCompleteTaskModal(taskId, assignedToId) {
+        document.getElementById('complete_task_id').value = taskId;
+        const members = await fetchData('/api/members');
+        const membersCheckboxes = document.getElementById('members-checkboxes');
+        membersCheckboxes.innerHTML = '';
+
+        if (members) {
+            members.forEach(member => {
+                const isAssigned = assignedToId && parseInt(assignedToId) === member.id;
+                const checkboxHtml = `
+                    <p>
+                        <label>
+                            <input type="checkbox" name="member" value="${member.id}" ${isAssigned ? 'checked="checked" disabled="disabled"' : ''} />
+                            <span>${member.name}</span>
+                        </label>
+                    </p>
+                `;
+                membersCheckboxes.insertAdjacentHTML('beforeend', checkboxHtml);
+            });
+        }
+        completeTaskModalInstance.open();
     }
 
     // Load rewards into the list
@@ -149,47 +216,44 @@ document.addEventListener('DOMContentLoaded', () => {
             rewards.forEach(reward => {
                 const li = document.createElement('li');
                 li.className = 'collection-item';
-                li.innerHTML = `
-                    <div>
-                        ${reward.name} - ${reward.cost} points 💎 <span class="secondary-content">${reward.description || ''}</span>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light blue edit-reward-btn" data-reward-id="${reward.id}" data-reward-name="${reward.name}" data-reward-cost="${reward.cost}" data-reward-description="${reward.description || ''}"><i class="material-icons">edit</i></a>
-                        <a href="#!" class="secondary-content btn-small waves-effect waves-light red delete-reward-btn" data-reward-id="${reward.id}"><i class="material-icons">delete</i></a>
-                    </div>
-                `;
+                li.innerHTML = `<div>${reward.name} - ${reward.cost} points 💎 <span class="secondary-content">${reward.description || ''}</span><a href="#!" class="secondary-content btn-small waves-effect waves-light blue edit-reward-btn" data-reward-id="${reward.id}"><i class="material-icons">edit</i></a><a href="#!" class="secondary-content btn-small waves-effect waves-light red delete-reward-btn" data-reward-id="${reward.id}"><i class="material-icons">delete</i></a></div>`;
                 rewardsList.appendChild(li);
             });
 
             // Attach event listeners for edit and delete buttons
-            document.querySelectorAll('.edit-reward-btn').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    const rewardId = event.currentTarget.dataset.rewardId;
-                    const rewardName = event.currentTarget.dataset.rewardName;
-                    const rewardCost = event.currentTarget.dataset.rewardCost;
-                    const rewardDescription = event.currentTarget.dataset.rewardDescription;
-                    
-                    document.getElementById('edit_reward_id').value = rewardId;
-                    document.getElementById('edit_reward_name').value = rewardName;
-                    document.getElementById('edit_reward_cost').value = rewardCost;
-                    document.getElementById('edit_reward_description').value = rewardDescription;
-                    M.updateTextFields();
-                    editRewardModalInstance.open();
-                });
-            });
-
-            document.querySelectorAll('.delete-reward-btn').forEach(button => {
-                button.addEventListener('click', async (event) => {
-                    const rewardId = event.currentTarget.dataset.rewardId;
-                    if (confirm('Êtes-vous sûr de vouloir supprimer cette récompense ? 🗑️')) {
-                        const result = await fetchData(`/api/rewards/${rewardId}`, { method: 'DELETE' });
-                        if (result) {
-                            M.toast({html: 'Récompense supprimée! 💥', classes: 'green darken-1'});
-                            loadRewards();
-                        }
-                    }
-                });
-            });
+            attachRewardButtonListeners();
         }
         hideLoading(rewardsLoading);
+    }
+
+    function attachRewardButtonListeners() {
+        document.querySelectorAll('.edit-reward-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const rewardId = event.currentTarget.closest('li').querySelector('.edit-reward-btn').dataset.rewardId;
+                const reward = await fetchData(`/api/rewards/${rewardId}`);
+                if (!reward) return;
+
+                document.getElementById('edit_reward_id').value = reward.id;
+                document.getElementById('edit_reward_name').value = reward.name;
+                document.getElementById('edit_reward_cost').value = reward.cost;
+                document.getElementById('edit_reward_description').value = reward.description || '';
+                M.updateTextFields();
+                editRewardModalInstance.open();
+            });
+        });
+
+        document.querySelectorAll('.delete-reward-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const rewardId = event.currentTarget.closest('li').querySelector('.delete-reward-btn').dataset.rewardId;
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette récompense ? 🗑️')) {
+                    const result = await fetchData(`/api/rewards/${rewardId}`, { method: 'DELETE' });
+                    if (result) {
+                        M.toast({html: 'Récompense supprimée! 💥', classes: 'green darken-1'});
+                        loadRewards();
+                    }
+                }
+            });
+        });
     }
 
     // Handle Add Task Form Submission
@@ -197,15 +261,16 @@ document.addEventListener('DOMContentLoaded', () => {
         addTaskForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const description = document.getElementById('task_description').value;
-            const points = parseInt(document.getElementById('task_points').value);
-            const assignedToId = parseInt(document.getElementById('task_assigned_to_id').value);
+            const points = parseInt(document.getElementById('task_points').value, 10);
+            const assignedToIdValue = document.getElementById('task_assigned_to_id').value;
+            const assigned_to_id = assignedToIdValue === "" ? null : parseInt(assignedToIdValue, 10);
 
-            if (!description || isNaN(points) || isNaN(assignedToId)) {
+            if (!description || isNaN(points)) {
                 M.toast({html: 'Veuillez remplir tous les champs de la quête. 📝', classes: 'red darken-1'});
                 return;
             }
 
-            const newTask = { description, points, assigned_to_id: assignedToId };
+            const newTask = { description, points, assigned_to_id };
             const result = await fetchData('/api/tasks', {
                 method: 'POST',
                 body: JSON.stringify(newTask)
@@ -213,7 +278,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result) {
                 M.toast({html: 'Quête ajoutée! ✨', classes: 'green darken-1'});
                 addTaskForm.reset();
-                M.FormSelect.init(document.getElementById('task_assigned_to_id')); // Re-init select
+                const selectElement = document.getElementById('task_assigned_to_id');
+                const instance = M.FormSelect.getInstance(selectElement);
+                if (instance) instance.destroy();
+                M.FormSelect.init(selectElement);
                 loadTasks();
             }
         });
@@ -224,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addRewardForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const name = document.getElementById('reward_name').value;
-            const cost = parseInt(document.getElementById('reward_cost').value);
+            const cost = parseInt(document.getElementById('reward_cost').value, 10);
             const description = document.getElementById('reward_description').value;
 
             if (!name || isNaN(cost)) {
@@ -251,16 +319,17 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             const taskId = document.getElementById('edit_task_id').value;
             const description = document.getElementById('edit_task_description').value;
-            const points = parseInt(document.getElementById('edit_task_points').value);
-            const assignedToId = parseInt(document.getElementById('edit_task_assigned_to_id').value);
+            const points = parseInt(document.getElementById('edit_task_points').value, 10);
+            const assignedToIdValue = document.getElementById('edit_task_assigned_to_id').value;
+            const assigned_to_id = assignedToIdValue === "" ? null : parseInt(assignedToIdValue, 10);
             const status = document.getElementById('edit_task_status').value;
 
-            if (!description || isNaN(points) || isNaN(assignedToId) || !status) {
+            if (!description || isNaN(points) || !status) {
                 M.toast({html: 'Veuillez remplir tous les champs de modification de la quête. 📝', classes: 'red darken-1'});
                 return;
             }
 
-            const updatedTask = { description, points, assigned_to_id: assignedToId, status };
+            const updatedTask = { description, points, assigned_to_id, status };
             const result = await fetchData(`/api/tasks/${taskId}`, {
                 method: 'PUT',
                 body: JSON.stringify(updatedTask)
@@ -274,13 +343,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Handle Complete Task Form Submission
+    if (completeTaskForm) {
+        completeTaskForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const taskId = document.getElementById('complete_task_id').value;
+            const selectedMembers = Array.from(document.querySelectorAll('#members-checkboxes input[name="member"]:checked')).map(cb => parseInt(cb.value, 10));
+
+            if (selectedMembers.length === 0) {
+                M.toast({html: 'Veuillez sélectionner au moins un membre. 👥', classes: 'red darken-1'});
+                return;
+            }
+
+            const result = await fetchData(`/api/tasks/${taskId}/complete`, {
+                method: 'POST',
+                body: JSON.stringify({ member_ids: selectedMembers })
+            });
+
+            if (result) {
+                M.toast({html: 'Quête validée! 🎉', classes: 'green darken-1'});
+                completeTaskModalInstance.close();
+                loadTasks();
+            }
+        });
+    }
+
     // Handle Edit Reward Form Submission
     if (editRewardForm) {
         editRewardForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const rewardId = document.getElementById('edit_reward_id').value;
             const name = document.getElementById('edit_reward_name').value;
-            const cost = parseInt(document.getElementById('edit_reward_cost').value);
+            const cost = parseInt(document.getElementById('edit_reward_cost').value, 10);
             const description = document.getElementById('edit_reward_description').value;
 
             if (!name || isNaN(cost)) {

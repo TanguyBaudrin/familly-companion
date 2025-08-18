@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
+from src.core import schemas
 from sqlalchemy.orm import sessionmaker, Session
-from src.core.models import Base, FamilyMember, Task, Reward, PointsHistory
-from datetime import datetime, UTC, timedelta # Import timedelta
-from typing import Optional # Import Optional
+from src.core.models import FamilyMember, Task, Reward, PointsHistory, TaskCompletion
+from datetime import datetime, UTC, timedelta
+from typing import Optional, List
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./heros_du_foyer.db"
 
@@ -62,14 +63,13 @@ def calculate_expiration_time(created_at: datetime, duration_value: int, duratio
     elif duration_unit == "weeks":
         return created_at + timedelta(weeks=duration_value)
     elif duration_unit == "months":
-        # Approximate months as 30 days for simplicity, or use more complex date calculations if needed
         return created_at + timedelta(days=duration_value * 30)
     else:
         raise ValueError("Invalid duration unit")
 
 def is_task_expired(task: Task) -> bool:
     if task.duration_value is None or task.duration_unit is None:
-        return False # Task has no duration, so it never expires
+        return False
     
     expiration_time = calculate_expiration_time(task.created_at, task.duration_value, task.duration_unit)
     return datetime.now(UTC) > expiration_time
@@ -96,6 +96,8 @@ def update_task(db: Session, task_id: int, description: Optional[str] = None, po
 def delete_task(db: Session, task_id: int):
     db_task = db.query(Task).filter(Task.id == task_id).first()
     if db_task:
+        # Delete associated TaskCompletion records first
+        db.query(TaskCompletion).filter(TaskCompletion.task_id == task_id).delete(synchronize_session=False)
         db.delete(db_task)
         db.commit()
         return True
@@ -131,44 +133,65 @@ def delete_reward(db: Session, reward_id: int):
         return True
     return False
 
-def create_task(db: Session, description: str, points: int, assigned_to_id: int, duration_value: Optional[int] = None, duration_unit: Optional[str] = None):
+def create_task(db: Session, description: str, points: int, assigned_to_id: Optional[int] = None, duration_value: Optional[int] = None, duration_unit: Optional[str] = None):
     db_task = Task(description=description, points=points, assigned_to_id=assigned_to_id, duration_value=duration_value, duration_unit=duration_unit)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
     return db_task
 
-def create_reward(db: Session, name: str, cost: int, description: Optional[str] = None): # Changed type hint
+def create_reward(db: Session, name: str, cost: int, description: Optional[str] = None):
     db_reward = Reward(name=name, cost=cost, description=description)
     db.add(db_reward)
     db.commit()
     db.refresh(db_reward)
     return db_reward
 
-def complete_task(db: Session, task_id: int):
+def complete_task(db: Session, task_id: int, completions: List[schemas.TaskCompletionData]):
     task = db.query(Task).filter(Task.id == task_id).first()
-    if task and task.status == 'pending':
-        if is_task_expired(task):
-            return None # Task is expired, cannot be completed
+    if not task or task.status != 'pending':
+        return None
 
-        task.status = 'completed' # type: ignore
-        task.completed_at = datetime.now(UTC) # type: ignore
-        member = db.query(FamilyMember).filter(FamilyMember.id == task.assigned_to_id).first()
+    if is_task_expired(task):
+        return None
+
+    total_percentage = sum(c.percentage for c in completions)
+    if total_percentage != 100:
+        raise ValueError("Total percentage must be 100")
+
+    members_to_update = []
+    for completion_data in completions:
+        member = db.query(FamilyMember).filter(FamilyMember.id == completion_data.member_id).first()
         if member:
-            member.total_points += task.points # type: ignore
+            points_to_add = int(task.points * (completion_data.percentage / 100))
+            
+            completion = TaskCompletion(task_id=task.id, member_id=member.id)
+            db.add(completion)
+            
+            member.total_points += points_to_add
+            
             points_history = PointsHistory(
                 member_id=member.id,
-                task_id=task.id,
-                points_change=task.points,
+                points_change=points_to_add,
                 reason=f"Task '{task.description}' completed"
             )
+            points_history.completion = completion
             db.add(points_history)
-        db.commit()
-        db.refresh(task)
-        if member:
-            db.refresh(member)
-        return task
-    return None
+            members_to_update.append(member)
+
+    if not members_to_update:
+        return None
+
+    task.status = 'completed'
+    task.completed_at = datetime.now(UTC)
+
+    db.commit()
+
+    db.refresh(task)
+    for member in members_to_update:
+        db.refresh(member)
+
+    return task
 
 def claim_reward(db: Session, member_id: int, reward_id: int):
     member = db.query(FamilyMember).filter(FamilyMember.id == member_id).first()
