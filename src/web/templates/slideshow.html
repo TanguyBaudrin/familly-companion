@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Slideshow - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="progress" style="margin: 0;">
+    <div class="determinate" style="width: 0%"></div>
+</div>
+<iframe id="slideshow-iframe" style="width:100%; height:100%; border:none;"></iframe>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('slideshow-iframe');
+    const progressBar = document.querySelector('.determinate');
+    const slideDuration = 10000; // 10 seconds
+    const updateInterval = 100; // Update every 100ms
+    let progress = 0;
+    let progressInterval;
+    let slideChangeInterval;
+
+    let slideUrls = [];
+    let currentSlide = 0;
+
+    function startProgressBar() {
+        progress = 0;
+        progressBar.style.width = '0%';
+        clearInterval(progressInterval);
+        progressInterval = setInterval(() => {
+            progress += (updateInterval / slideDuration) * 100;
+            if (progress > 100) {
+                progress = 100;
+            }
+            progressBar.style.width = `${progress}%`;
+        }, updateInterval);
+    }
+
+    async function initializeSlides() {
+        // 1. Add static pages
+        slideUrls.push('/slideshow/dashboard');
+        slideUrls.push('/slideshow/statistiques');
+
+        // 2. Fetch members to create hero pages
+        try {
+            const response = await fetch('/api/members');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const members = await response.json();
+            members.forEach(member => {
+                slideUrls.push(`/slideshow/hero/${member.id}`);
+            });
+        } catch (error) {
+            console.error('Failed to fetch members:', error);
+            // Display error in the iframe itself or a message outside
+            iframe.srcdoc = `<div class="card-panel red lighten-2">Erreur lors du chargement des membres pour le slideshow.</div>`;
+            return; // Stop if we can't load members
+        }
+
+        // 3. Start the slideshow
+        if (slideUrls.length > 0) {
+            loadSlide(); // Load the first slide immediately
+            slideChangeInterval = setInterval(loadSlide, slideDuration); // Change slide every 10 seconds
+        }
+    }
+
+    function loadSlide() {
+        if (slideUrls.length === 0) return;
+
+        const url = slideUrls[currentSlide];
+        currentSlide = (currentSlide + 1) % slideUrls.length;
+
+        iframe.src = url;
+        startProgressBar(); // Start progress bar for the new slide
+    }
+
+    initializeSlides();
+});
+</script>
+{% endblock %}

@@ -36,12 +36,35 @@ async def manage_quests_rewards(request: Request):
 async def view_statistics(request: Request):
     return templates.TemplateResponse("statistiques.html", {"request": request})
 
+@router.get("/slideshow", response_class=HTMLResponse)
+async def view_slideshow(request: Request):
+    return templates.TemplateResponse("slideshow.html", {"request": request})
+
 @router.get("/members/{member_id}", response_class=HTMLResponse)
 async def view_member_details(request: Request, member_id: int, db: Session = Depends(get_db)):
     member = get_family_member_by_id(db, member_id)
     if not member:
         raise HTTPException(status_code=404, detail="Héros non trouvé")
     return templates.TemplateResponse("hero_details.html", {"request": request, "member": member})
+
+
+# Slideshow partials
+
+@router.get("/slideshow/dashboard", response_class=HTMLResponse)
+async def slideshow_dashboard(request: Request):
+    return templates.TemplateResponse("_dashboard_content.html", {"request": request})
+
+@router.get("/slideshow/statistiques", response_class=HTMLResponse)
+async def slideshow_statistiques(request: Request):
+    return templates.TemplateResponse("_statistiques_content.html", {"request": request})
+
+@router.get("/slideshow/hero/{member_id}", response_class=HTMLResponse)
+async def slideshow_hero(request: Request, member_id: int, db: Session = Depends(get_db)):
+    member = get_family_member_by_id(db, member_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Héros non trouvé")
+    return templates.TemplateResponse("_hero_details_content.html", {"request": request, "member": member})
+
 
 # API Endpoints - Members
 

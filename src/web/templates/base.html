@@ -16,9 +16,25 @@
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on html/body */
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1; /* Take remaining vertical space */
+            overflow-y: auto; /* Allow scrolling within main if content overflows */
+        }
+    </style>
 </head>
 <body>
 
+    {% if request.query_params.get('showMenu') != 'false' %}
     <header>
         <nav class="brown darken-2">
             <div class="nav-wrapper">
@@ -29,10 +45,12 @@
                     <li><a href="/members">Gérer les Héros</a></li>
                     <li><a href="/quests-rewards">Gérer Quêtes & Récompenses</a></li>
                     <li><a href="/statistiques">Statistiques</a></li>
+                    <li><a href="/slideshow">Slideshow</a></li>
                 </ul>
             </div>
         </nav>
     </header>
+    {% endif %}
 
     <main>
         <!-- Contenu spécifique à la page -->
@@ -40,6 +58,7 @@
         {% endblock %}
     </main>
 
+    {% if request.query_params.get('showMenu') != 'false' %}
     <footer class="page-footer brown darken-3">
         <div class="container">
             <div class="row">
@@ -55,6 +74,7 @@
             </div>
         }
     </footer>
+    {% endif %}
 
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
