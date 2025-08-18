@@ -32,6 +32,10 @@ async def manage_members(request: Request):
 async def manage_quests_rewards(request: Request):
     return templates.TemplateResponse("quests_rewards.html", {"request": request})
 
+@router.get("/statistiques", response_class=HTMLResponse)
+async def view_statistics(request: Request):
+    return templates.TemplateResponse("statistiques.html", {"request": request})
+
 # API Endpoints - Members
 
 @router.get("/api/members", response_model=List[schemas.FamilyMemberResponse])

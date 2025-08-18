@@ -126,3 +126,15 @@ body {
 select:focus {
     outline-color: #795548 !important;
 }
+
+/* --- Styles pour les graphiques --- */
+.chart-container {
+    position: relative;
+    height: 400px; /* Hauteur fixe pour le conteneur du graphique */
+    width: 100%;
+}
+
+.chart-card {
+    border: 2px solid #c8a575;
+    border-radius: 15px;
+}
