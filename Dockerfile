@@ -23,4 +23,4 @@ ENV NAME=World
 ENV PYTHONPATH=/app
 
 # Run main.py when the container launches
-CMD ["uv", "run", "uvicorn", "src.main:app"]
+CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
