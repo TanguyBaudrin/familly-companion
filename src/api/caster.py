@@ -12,7 +12,24 @@ router = APIRouter()
 logging.getLogger("pychromecast").setLevel(logging.WARNING)
 logging.getLogger("zeroconf").setLevel(logging.WARNING)
 
-CASTS = pychromecast.get_chromecasts()
+logging.getLogger("pychromecast").setLevel(logging.WARNING)
+logging.getLogger("zeroconf").setLevel(logging.WARNING)
+
+# Helper function to run blocking pychromecast calls
+def _discover_chromecasts_blocking():
+    chromecasts, browser = pychromecast.discover_chromecasts()
+    # It's important to stop the browser to clean up resources
+    return chromecasts, browser
+
+def _get_chromecast_from_uuid_blocking(uuid_str: str):
+    chromecasts, browser = pychromecast.discover_chromecasts()
+    target_uuid = uuid.UUID(uuid_str)
+    found_cast = None
+    for cast in chromecasts:
+        if cast.uuid == target_uuid:
+            found_cast = cast
+            break
+    return found_cast
 
 @router.get("/cast/devices", response_model=List[Dict[str, str]])
 async def get_cast_devices():
@@ -21,8 +38,9 @@ async def get_cast_devices():
     Returns a list of dictionaries, each with 'name' and 'uuid'.
     """
     try:
+        chromecasts, _browser = await run_in_threadpool(_discover_chromecasts_blocking)
         devices = []
-        for cast in CASTS:
+        for cast in chromecasts:
             devices.append({"name": cast.friendly_name, "uuid": str(cast.uuid)})
         return devices
     except Exception as e:
@@ -35,9 +53,7 @@ async def start_cast(request_body: schemas.CastRequest): # Modified signature
     Starts casting a URL to a specific Chromecast device.
     """
     try:
-        target_uuid = uuid.UUID(request_body.device_uuid)
-        cast = next((c for c in CASTS if c.uuid == target_uuid), None)
-
+        cast = await run_in_threadpool(_get_chromecast_from_uuid_blocking, request_body.device_uuid)
         if not cast:
             raise HTTPException(status_code=404, detail="Chromecast device not found.")
 
