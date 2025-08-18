@@ -27,8 +27,6 @@ Je démarre un projet d'application web, un **compagnon de la famille**, destin�
 
 ## Interface utilisateur
 
-- Plusieurs pages dont une **page d’administration** accessible uniquement aux utilisateurs autorisés.
-- Système d’authentification simple via un fournisseur **d’authentification externe** (Google, Facebook, Apple).
 - Le style de l'interface est géré par la bibliothèque **Materialize CSS** pour une apparence moderne et cohérente.
 - Un template de base (`base.html`) est utilisé pour assurer la cohérence visuelle sur toutes les pages.
 
