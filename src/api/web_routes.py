@@ -138,12 +138,15 @@ def delete_reward_api(reward_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail=REWARD_NOT_FOUND)
 
-@router.post("/api/members/{member_id}/claim_reward/{reward_id}", response_model=schemas.FamilyMemberResponse)
-def claim_reward_api(member_id: int, reward_id: int, db: Session = Depends(get_db)):
-    updated_member = claim_reward(db, member_id, reward_id)
+
+@router.post("/api/rewards/claim", response_model=schemas.FamilyMemberResponse)
+def claim_reward_api(reward_claim: schemas.RewardClaim, db: Session = Depends(get_db)):
+    updated_member = claim_reward(db, reward_claim.member_id, reward_claim.reward_id)
     if not updated_member:
         raise HTTPException(status_code=400, detail=NOT_FOUND_OR_INSUFFICIENT)
     return updated_member
+
+
 
 @router.get("/api/leaderboard", response_model=List[schemas.FamilyMemberResponse])
 def get_leaderboard(db: Session = Depends(get_db)):

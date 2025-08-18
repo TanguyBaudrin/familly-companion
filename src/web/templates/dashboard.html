@@ -58,5 +58,25 @@
   </div>
 </div>
 
+<!-- Modal for Claiming Rewards -->
+<div id="claim-reward-modal" class="modal">
+    <div class="modal-content">
+        <h4>Réclamer une récompense</h4>
+        <p>Sélectionnez le membre qui va recevoir la récompense.</p>
+        <div class="input-field">
+            <select id="member-select">
+                <!-- Options will be populated by JavaScript -->
+            </select>
+            <label for="member-select">Membre</label>
+        </div>
+        <p>Coût de la récompense : <span id="reward-cost"></span> points</p>
+        <input type="hidden" id="reward-id-input">
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-red btn-flat">Annuler</a>
+        <a href="#!" id="confirm-claim-reward" class="waves-effect waves-green btn">Confirmer</a>
+    </div>
+</div>
+
 <script src="/static/js/dashboard.js"></script>
 {% endblock %}

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Materialize components
     const assignUserModal = M.Modal.init(document.getElementById('assign-user-modal'));
+    const claimRewardModal = M.Modal.init(document.getElementById('claim-reward-modal'));
 
     // Get loading indicator elements
     const leaderboardLoading = document.getElementById('leaderboard-loading');
@@ -307,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${reward.name} 🎁 - ${reward.cost} points</span>
                         <span class="reward-actions">
                             <span class="reward-desc-text">${reward.description || ''}</span>
-                            <a href="#" class="btn-small waves-effect waves-light blue" data-reward-id="${reward.id}" title="Réclamer la récompense"><i class="material-icons">card_giftcard</i></a>
+                            <a href="#" class="btn-small waves-effect waves-light blue claim-reward-btn" data-reward-id="${reward.id}" data-reward-cost="${reward.cost}" title="Réclamer la récompense"><i class="material-icons">card_giftcard</i></a>
                         </span>
                     </div>
                 `;
@@ -315,21 +316,61 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Add event listeners for claim buttons
-            document.querySelectorAll('#reward-list .btn-floating').forEach(button => {
+            document.querySelectorAll('.claim-reward-btn').forEach(button => {
                 button.addEventListener('click', async (event) => {
                     const rewardId = event.currentTarget.dataset.rewardId;
-                    const memberId = 1; // This should be dynamic
-                    const result = await fetchData(`/api/members/${memberId}/claim_reward/${rewardId}`, { method: 'POST' });
-                    if (result) {
-                        M.toast({html: 'Récompense réclamée! 🎁', classes: 'blue darken-1'});
-                        loadRewards();
-                        loadLeaderboard();
-                    }
+                    const rewardCost = event.currentTarget.dataset.rewardCost;
+                    openClaimRewardModal(rewardId, rewardCost);
                 });
             });
         }
         hideLoading(rewardsLoading);
     }
+
+    // Open modal to claim a reward
+    async function openClaimRewardModal(rewardId, rewardCost) {
+        const members = await fetchData('/api/members');
+        const memberSelect = document.getElementById('member-select');
+        if (memberSelect && members) {
+            memberSelect.innerHTML = '<option value="" disabled selected>Sélectionnez un membre</option>';
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = `${member.name} (${member.total_points} points)`;
+                memberSelect.appendChild(option);
+            });
+            M.FormSelect.init(memberSelect);
+
+            document.getElementById('reward-id-input').value = rewardId;
+            document.getElementById('reward-cost').textContent = rewardCost;
+            const modal = M.Modal.getInstance(document.getElementById('claim-reward-modal'));
+            modal.open();
+        }
+    }
+
+    // Handle confirm button in claim reward modal
+    document.getElementById('confirm-claim-reward').addEventListener('click', async () => {
+        const memberId = document.getElementById('member-select').value;
+        const rewardId = document.getElementById('reward-id-input').value;
+
+        if (!memberId) {
+            M.toast({html: 'Veuillez sélectionner un membre. 👤', classes: 'red darken-1'});
+            return;
+        }
+
+        const result = await fetchData('/api/rewards/claim', {
+            method: 'POST',
+            body: JSON.stringify({ member_id: parseInt(memberId), reward_id: parseInt(rewardId) })
+        });
+
+        if (result) {
+            M.toast({html: 'Récompense réclamée! 🎁', classes: 'blue darken-1'});
+            const modal = M.Modal.getInstance(document.getElementById('claim-reward-modal'));
+            modal.close();
+            loadRewards();
+            loadLeaderboard();
+        }
+    });
 
     // Populate task assignee dropdown
     async function populateAssigneeDropdown() {

@@ -76,3 +76,7 @@ docker-compose.yml
 
 # uv
 .uv
+
+# System related files
+.DS_Store
+Thumbs.db

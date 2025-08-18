@@ -95,3 +95,7 @@ class TaskCompletionData(BaseModel):
 
 class TaskComplete(BaseModel):
     completions: List[TaskCompletionData]
+
+class RewardClaim(BaseModel):
+    member_id: int
+    reward_id: int
