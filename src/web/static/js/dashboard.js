@@ -73,7 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and display tasks
     async function loadTasks() {
         showLoading(tasksLoading);
-        const tasks = await fetchData('/api/tasks');
+        // Calculer la date d'il y a 7 jours au format ISO (UTC)
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const isoOneWeekAgo = oneWeekAgo.toISOString();
+
+        // Appel API avec filtre created_after
+        const tasks = await fetchData(`/api/tasks?created_after=${encodeURIComponent(isoOneWeekAgo)}`);
         const members = await fetchData('/api/members');
         const questsByPersonContainer = document.getElementById('quests-by-person-container');
 
@@ -102,7 +108,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (questsByPersonContainer) {
-            questsByPersonContainer.innerHTML = ''; // Clear previous content
+            questsByPersonContainer.innerHTML = '';
+
+            // Helper to format date in French
+            function formatDateFr(dateStr) {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                return date.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+            }
+
+            // Helper to compute remaining time
+            function getRemainingTime(task) {
+                if (!task.duration_value || !task.duration_unit || !task.created_at) return '';
+                const created = new Date(task.created_at);
+                let msToAdd = 0;
+                switch (task.duration_unit) {
+                    case 'days': msToAdd = task.duration_value * 24 * 60 * 60 * 1000; break;
+                    case 'weeks': msToAdd = task.duration_value * 7 * 24 * 60 * 60 * 1000; break;
+                    case 'months': msToAdd = task.duration_value * 30 * 24 * 60 * 60 * 1000; break;
+                    default: return '';
+                }
+                const expiration = new Date(created.getTime() + msToAdd);
+                const now = new Date();
+                const diff = expiration - now;
+                if (diff <= 0) return '<span class="red-text">Temps écoulé ⏰</span>';
+                // Format remaining time
+                const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+                const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+                let txt = 'Temps restant : ';
+                if (days > 0) txt += `${days}j `;
+                if (hours > 0) txt += `${hours}h `;
+                if (minutes > 0) txt += `${minutes}min`;
+                return txt.trim();
+            }
 
             // Render unassigned tasks first
             if (groupedTasks.unassigned.length > 0) {
@@ -115,10 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${groupedTasks.unassigned.map(task => `
                                 <li class="collection-item">
                                     <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <span>${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}</span>
+                                        <span>
+                                            ${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}
+                                            <br>
+                                            ${task.status === 'completed' ? `<span class='grey-text'>Réalisée le : ${formatDateFr(task.completed_at)}</span>` : getRemainingTime(task)}
+                                        </span>
                                         <span class="quest-actions">
                                             <span class="quest-status-text">Statut: ${task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳'}</span>
-                                            ${task.status !== 'completed' ? `<a href="#!" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
+                                            ${task.status !== 'completed' ? `<a href="#" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
                                         </span>
                                     </div>
                                 </li>
@@ -142,10 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${memberTasks.map(task => `
                                     <li class="collection-item">
                                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                                            <span>${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}</span>
+                                            <span>
+                                                ${task.description} 📝 - ${task.points} points ${formatDuration(task.duration_value, task.duration_unit)}
+                                                <br>
+                                                ${task.status === 'completed' ? `<span class='grey-text'>Réalisée le : ${formatDateFr(task.completed_at)}</span>` : getRemainingTime(task)}
+                                            </span>
                                             <span class="quest-actions">
                                                 <span class="quest-status-text">Statut: ${task.status === 'completed' ? 'Terminée ✅' : 'En cours ⏳'}</span>
-                                                ${task.status !== 'completed' ? `<a href="#!" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
+                                                ${task.status !== 'completed' ? `<a href="#" class="btn-small waves-effect waves-light green complete-task-btn" data-task-id="${task.id}" data-assigned-to="${task.assigned_to_id}" title="Valider la quête"><i class="material-icons">check</i></a>` : ''}
                                             </span>
                                         </div>
                                     </li>
@@ -180,8 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
-
-            
         }
         hideLoading(tasksLoading);
     }

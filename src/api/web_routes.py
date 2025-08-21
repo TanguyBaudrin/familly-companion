@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Request, Depends, HTTPException, status
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -105,8 +105,20 @@ def delete_member(member_id: int, db: Session = Depends(get_db)):
 # API Endpoints - Tasks
 
 @router.get("/api/tasks", response_model=List[schemas.TaskResponse])
-def read_tasks(db: Session = Depends(get_db)):
-    tasks = get_all_tasks(db)
+def read_tasks(
+    db: Session = Depends(get_db),
+    created_after: str = Query(None, description="Filter tasks created after this ISO date string")
+):
+    if created_after:
+        from datetime import datetime
+        try:
+            dt = datetime.fromisoformat(created_after)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid date format for created_after. Use ISO 8601.")
+        from src.data.database import get_tasks_created_after
+        tasks = get_tasks_created_after(db, dt)
+    else:
+        tasks = get_all_tasks(db)
     return tasks
 
 @router.get("/api/tasks/{task_id}", response_model=schemas.TaskResponse)

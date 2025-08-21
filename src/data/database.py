@@ -1,9 +1,12 @@
 from sqlalchemy import create_engine, func
-from src.core import schemas
 from sqlalchemy.orm import sessionmaker, Session
+from src.core import schemas
 from src.core.models import FamilyMember, Task, Reward, PointsHistory, TaskCompletion
 from datetime import datetime, UTC, timedelta
 from typing import Optional, List
+
+def get_tasks_created_after(db: Session, created_after):
+    return db.query(Task).filter(Task.created_at >= created_after).all()
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./db/heros_du_foyer.db"
 
