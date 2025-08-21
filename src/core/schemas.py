@@ -103,3 +103,4 @@ class RewardClaim(BaseModel):
 class CastRequest(BaseModel):
     device_uuid: str
     url: str
+    is_webpage: bool = False

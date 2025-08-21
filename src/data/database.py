@@ -231,7 +231,7 @@ def get_daily_points_for_member(db: Session, member_id: int, period: str):
 
     results = (
         db.query(
-            func.strftime('%Y-%m-%d', PointsHistory.timestamp).label('date'),
+            func.date(PointsHistory.timestamp).label('date'),
             func.sum(PointsHistory.points_change).label('total_points')
         )
         .filter(
@@ -239,8 +239,8 @@ def get_daily_points_for_member(db: Session, member_id: int, period: str):
             PointsHistory.timestamp >= start_date,
             PointsHistory.points_change > 0
         )
-        .group_by(func.strftime('%Y-%m-%d', PointsHistory.timestamp))
-        .order_by(func.strftime('%Y-%m-%d', PointsHistory.timestamp))
+        .group_by(func.date(PointsHistory.timestamp))
+        .order_by(func.date(PointsHistory.timestamp))
         .all()
     )
     return [{"date": str(date), "points": total_points} for date, total_points in results]

@@ -9,6 +9,12 @@
 
     <div class="card-panel amber lighten-5 z-depth-2">
         <h5 class="custom-title"><i class="material-icons left">cast</i>Appareils Disponibles</h5>
+        <div class="row" style="margin-bottom: 0.5rem;">
+            <label>
+                <input type="checkbox" id="is-webpage-checkbox" />
+                <span>Caster comme page web (DashCast)</span>
+            </label>
+        </div>
         <div id="devices-loading" class="center-align"><div class="preloader-wrapper small active"><div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div></div>
         <ul class="collection" id="device-list">
             <!-- Devices will be loaded here by JavaScript -->
@@ -74,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const uuid = this.dataset.uuid;
         // Construct the slideshow URL without menu
         const slideshowUrl = `${window.location.origin}/slideshow?showMenu=false`;
+        const isWebpage = document.getElementById('is-webpage-checkbox').checked;
 
         M.toast({ html: `Lancement du cast sur ${this.closest('li').querySelector('div').firstChild.textContent.trim()}...` });
 
@@ -83,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ device_uuid: uuid, url: slideshowUrl })
+                body: JSON.stringify({ device_uuid: uuid, url: slideshowUrl, is_webpage: isWebpage })
             });
 
             if (!response.ok) {

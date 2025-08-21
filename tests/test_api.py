@@ -1,69 +1,34 @@
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from src.main import app
-from src.data.database import get_db, Base
 from src.core.models import FamilyMember, Task, Reward
 
-# Setup test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# Override the get_db dependency for testing
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-def setup_function(function):
-    # Create tables before each test
-    Base.metadata.create_all(bind=engine)
-    # Add some initial data
-    db = TestingSessionLocal()
+def test_read_members(client, db_session):
     member1 = FamilyMember(name="Test Member 1", total_points=100)
     member2 = FamilyMember(name="Test Member 2", total_points=50)
-    db.add_all([member1, member2])
-    db.commit()
-    db.close()
+    db_session.add_all([member1, member2])
+    db_session.commit()
+    db_session.refresh(member1)
+    db_session.refresh(member2)
 
-def teardown_function(function):
-    # Drop tables after each test
-    Base.metadata.drop_all(bind=engine)
-
-
-def test_read_members():
     response = client.get("/api/members", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert len(response.json()) == 2
     assert response.json()[0]["name"] == "Test Member 1"
 
-def test_read_member_by_id():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id # Store ID
-    db.close()
+def test_read_member_by_id(client, db_session):
+    member = FamilyMember(name="Test Member 1", total_points=100)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
-    response = client.get(f"/api/members/{member_id}", headers={"Authorization": "Bearer dummy-token"})
+    response = client.get(f"/api/members/{member.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert response.json()["name"] == member.name
 
-def test_read_nonexistent_member():
+def test_read_nonexistent_member(client):
     response = client.get("/api/members/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Member not found"
 
-def test_create_member():
+def test_create_member(client, db_session):
     response = client.post(
         "/api/members",
         headers={"Authorization": "Bearer dummy-token"},
@@ -71,23 +36,30 @@ def test_create_member():
     )
     assert response.status_code == 201
     assert response.json()["name"] == "New Member"
+    # Verify it's in the database
+    new_member = db_session.query(FamilyMember).filter_by(name="New Member").first()
+    assert new_member is not None
 
-def test_update_member():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id # Store ID
-    db.close()
+def test_update_member(client, db_session):
+    member = FamilyMember(name="Original Name", total_points=100)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
     response = client.put(
-        f"/api/members/{member_id}",
+        f"/api/members/{member.id}",
         headers={"Authorization": "Bearer dummy-token"},
         json={"name": "Updated Member Name", "total_points": 150}
     )
     assert response.status_code == 200
     assert response.json()["name"] == "Updated Member Name"
     assert response.json()["total_points"] == 150
+    # Verify it's updated in the database
+    updated_member = db_session.query(FamilyMember).filter_by(id=member.id).first()
+    assert updated_member.name == "Updated Member Name"
+    assert updated_member.total_points == 150
 
-def test_update_nonexistent_member():
+def test_update_nonexistent_member(client):
     response = client.put(
         "/api/members/999",
         headers={"Authorization": "Bearer dummy-token"},
@@ -96,62 +68,65 @@ def test_update_nonexistent_member():
     assert response.status_code == 404
     assert response.json()["detail"] == "Member not found"
 
-def test_delete_member():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id
-    db.close()
+def test_delete_member(client, db_session):
+    member = FamilyMember(name="Member to Delete", total_points=100)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
-    response = client.delete(f"/api/members/{member_id}", headers={"Authorization": "Bearer dummy-token"})
+    response = client.delete(f"/api/members/{member.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 204
 
     # Verify member is deleted
-    db = TestingSessionLocal()
-    deleted_member = db.query(FamilyMember).filter(FamilyMember.id == member_id).first()
-    db.close()
+    deleted_member = db_session.query(FamilyMember).filter(FamilyMember.id == member.id).first()
     assert deleted_member is None
 
-def test_delete_nonexistent_member():
+def test_delete_nonexistent_member(client):
     response = client.delete("/api/members/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Member not found"
 
-def test_read_tasks():
-    # Add a task first
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
+def test_read_tasks(client, db_session):
+    member = FamilyMember(name="Task Member", total_points=0)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
     task = Task(description="Test Task", points=10, assigned_to_id=member.id)
-    db.add(task)
-    db.commit()
-    db.close()
+    db_session.add(task)
+    db_session.commit()
+    db_session.refresh(task)
 
     response = client.get("/api/tasks", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["description"] == "Test Task"
 
-def test_read_task_by_id():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    task = Task(description="Specific Task", points=10, assigned_to_id=member.id)
-    db.add(task)
-    db.commit()
-    task_id = task.id # Store ID
-    db.close()
+def test_read_task_by_id(client, db_session):
+    member = FamilyMember(name="Task Member", total_points=0)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
-    response = client.get(f"/api/tasks/{task_id}", headers={"Authorization": "Bearer dummy-token"})
+    task = Task(description="Specific Task", points=10, assigned_to_id=member.id)
+    db_session.add(task)
+    db_session.commit()
+    db_session.refresh(task)
+
+    response = client.get(f"/api/tasks/{task.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert response.json()["description"] == "Specific Task"
 
-def test_read_nonexistent_task():
+def test_read_nonexistent_task(client):
     response = client.get("/api/tasks/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
 
-def test_create_task():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    db.close()
+def test_create_task(client, db_session):
+    member = FamilyMember(name="New Task Member", total_points=0)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
     response = client.post(
         "/api/tasks",
@@ -164,18 +139,22 @@ def test_create_task():
     )
     assert response.status_code == 201
     assert response.json()["description"] == "New Task"
+    new_task = db_session.query(Task).filter_by(description="New Task").first()
+    assert new_task is not None
 
-def test_update_task():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
+def test_update_task(client, db_session):
+    member = FamilyMember(name="Update Task Member", total_points=0)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
     task = Task(description="Task to Update", points=10, assigned_to_id=member.id)
-    db.add(task)
-    db.commit()
-    task_id = task.id # Store ID
-    db.close()
+    db_session.add(task)
+    db_session.commit()
+    db_session.refresh(task)
 
     response = client.put(
-        f"/api/tasks/{task_id}",
+        f"/api/tasks/{task.id}",
         headers={"Authorization": "Bearer dummy-token"},
         json={"description": "Updated Task", "points": 25, "status": "completed"}
     )
@@ -183,8 +162,12 @@ def test_update_task():
     assert response.json()["description"] == "Updated Task"
     assert response.json()["points"] == 25
     assert response.json()["status"] == "completed"
+    updated_task = db_session.query(Task).filter_by(id=task.id).first()
+    assert updated_task.description == "Updated Task"
+    assert updated_task.points == 25
+    assert updated_task.status == "completed"
 
-def test_update_nonexistent_task():
+def test_update_nonexistent_task(client):
     response = client.put(
         "/api/tasks/999",
         headers={"Authorization": "Bearer dummy-token"},
@@ -193,83 +176,77 @@ def test_update_nonexistent_task():
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
 
-def test_delete_task():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    task = Task(description="Task to Delete", points=10, assigned_to_id=member.id)
-    db.add(task)
-    db.commit()
-    task_id = task.id
-    db.close()
+def test_delete_task(client, db_session):
+    member = FamilyMember(name="Delete Task Member", total_points=0)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
 
-    response = client.delete(f"/api/tasks/{task_id}", headers={"Authorization": "Bearer dummy-token"})
+    task = Task(description="Task to Delete", points=10, assigned_to_id=member.id)
+    db_session.add(task)
+    db_session.commit()
+    db_session.refresh(task)
+
+    response = client.delete(f"/api/tasks/{task.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 204
 
-    db = TestingSessionLocal()
-    deleted_task = db.query(Task).filter(Task.id == task_id).first()
-    db.close()
+    deleted_task = db_session.query(Task).filter(Task.id == task.id).first()
     assert deleted_task is None
 
-def test_delete_nonexistent_task():
+def test_delete_nonexistent_task(client):
     response = client.delete("/api/tasks/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
 
-def test_complete_task():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id # Store member.id before closing session
-    task = Task(description="Task to Complete", points=15, assigned_to_id=member_id)
-    db.add(task)
-    db.commit()
-    db.refresh(task)
-    db.close()
+def test_complete_task(client, db_session):
+    member = FamilyMember(name="Completing Member", total_points=100)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
+    task = Task(description="Task to Complete", points=15, assigned_to_id=member.id)
+    db_session.add(task)
+    db_session.commit()
+    db_session.refresh(task)
 
     response = client.post(
             f"/api/tasks/{task.id}/complete",
             headers={"Authorization": "Bearer dummy-token"},
-            json={"completions": [{"member_id": member_id, "percentage": 100}]}
+            json={"completions": [{"member_id": member.id, "percentage": 100}]}
         )
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
     
-    # Verify points updated
-    db = TestingSessionLocal()
-    updated_member = db.query(FamilyMember).filter(FamilyMember.id == member_id).first()
-    db.close()
-    assert updated_member.total_points == 100 + 15 # Initial 100 + 15 from task
+    updated_member = db_session.query(FamilyMember).filter(FamilyMember.id == member.id).first()
+    assert updated_member.total_points == 100 + 15
 
-def test_read_rewards():
-    # Add a reward first
-    db = TestingSessionLocal()
+def test_read_rewards(client, db_session):
     reward = Reward(name="Test Reward", cost=50)
-    db.add(reward)
-    db.commit()
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
     response = client.get("/api/rewards", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["name"] == "Test Reward"
 
-def test_read_reward_by_id():
-    db = TestingSessionLocal()
+def test_read_reward_by_id(client, db_session):
     reward = Reward(name="Specific Reward", cost=50)
-    db.add(reward)
-    db.commit()
-    reward_id = reward.id # Store ID
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
-    response = client.get(f"/api/rewards/{reward_id}", headers={"Authorization": "Bearer dummy-token"})
+    response = client.get(f"/api/rewards/{reward.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert response.json()["name"] == "Specific Reward"
 
-def test_read_nonexistent_reward():
+def test_read_nonexistent_reward(client):
     response = client.get("/api/rewards/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Reward not found"
 
-def test_create_reward():
+def test_create_reward(client, db_session):
     response = client.post(
         "/api/rewards",
         headers={"Authorization": "Bearer dummy-token"},
@@ -281,17 +258,17 @@ def test_create_reward():
     )
     assert response.status_code == 201
     assert response.json()["name"] == "New Reward"
+    new_reward = db_session.query(Reward).filter_by(name="New Reward").first()
+    assert new_reward is not None
 
-def test_update_reward():
-    db = TestingSessionLocal()
+def test_update_reward(client, db_session):
     reward = Reward(name="Reward to Update", cost=50)
-    db.add(reward)
-    db.commit()
-    reward_id = reward.id # Store ID
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
     response = client.put(
-        f"/api/rewards/{reward_id}",
+        f"/api/rewards/{reward.id}",
         headers={"Authorization": "Bearer dummy-token"},
         json={"name": "Updated Reward", "cost": 100, "description": "An updated reward"}
     )
@@ -299,8 +276,11 @@ def test_update_reward():
     assert response.json()["name"] == "Updated Reward"
     assert response.json()["cost"] == 100
     assert response.json()["description"] == "An updated reward"
+    updated_reward = db_session.query(Reward).filter_by(id=reward.id).first()
+    assert updated_reward.name == "Updated Reward"
+    assert updated_reward.cost == 100
 
-def test_update_nonexistent_reward():
+def test_update_nonexistent_reward(client):
     response = client.put(
         "/api/rewards/999",
         headers={"Authorization": "Bearer dummy-token"},
@@ -309,66 +289,72 @@ def test_update_nonexistent_reward():
     assert response.status_code == 404
     assert response.json()["detail"] == "Reward not found"
 
-def test_delete_reward():
-    db = TestingSessionLocal()
+def test_delete_reward(client, db_session):
     reward = Reward(name="Reward to Delete", cost=50)
-    db.add(reward)
-    db.commit()
-    reward_id = reward.id
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
-    response = client.delete(f"/api/rewards/{reward_id}", headers={"Authorization": "Bearer dummy-token"})
+    response = client.delete(f"/api/rewards/{reward.id}", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 204
 
-    db = TestingSessionLocal()
-    deleted_reward = db.query(Reward).filter(Reward.id == reward_id).first()
-    db.close()
+    deleted_reward = db_session.query(Reward).filter(Reward.id == reward.id).first()
     assert deleted_reward is None
 
-def test_delete_nonexistent_reward():
+def test_delete_nonexistent_reward(client):
     response = client.delete("/api/rewards/999", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Reward not found"
 
-def test_claim_reward():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id # Store member.id before closing session
+def test_claim_reward(client, db_session):
+    member = FamilyMember(name="Claiming Member", total_points=100)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
     reward = Reward(name="Claimable Reward", cost=30)
-    db.add(reward)
-    db.commit()
-    db.refresh(member)
-    db.refresh(reward)
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
     response = client.post(
-        f"/api/members/{member_id}/claim_reward/{reward.id}",
-        headers={"Authorization": "Bearer dummy-token"}
+        "/api/rewards/claim",  # Correct endpoint
+        headers={"Authorization": "Bearer dummy-token"},
+        json={"member_id": member.id, "reward_id": reward.id} # Correct payload
     )
     assert response.status_code == 200
-    assert response.json()["total_points"] == 100 - 30 # Initial 100 - 30 from reward
+    updated_member = db_session.query(FamilyMember).filter_by(id=member.id).first()
+    assert updated_member.total_points == 100 - 30
 
-def test_claim_reward_insufficient_points():
-    db = TestingSessionLocal()
-    member = db.query(FamilyMember).first()
-    member_id = member.id # Store member.id before closing session
+def test_claim_reward_insufficient_points(client, db_session):
+    member = FamilyMember(name="Poor Member", total_points=10)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
     reward = Reward(name="Expensive Reward", cost=200)
-    db.add(reward)
-    db.commit()
-    db.refresh(member)
-    db.refresh(reward)
-    db.close()
+    db_session.add(reward)
+    db_session.commit()
+    db_session.refresh(reward)
 
     response = client.post(
-        f"/api/members/{member_id}/claim_reward/{reward.id}",
-        headers={"Authorization": "Bearer dummy-token"}
+        "/api/rewards/claim", # Correct endpoint
+        headers={"Authorization": "Bearer dummy-token"},
+        json={"member_id": member.id, "reward_id": reward.id} # Correct payload
     )
     assert response.status_code == 400
     assert "insufficient points" in response.json()["detail"]
 
-def test_get_leaderboard():
+def test_get_leaderboard(client, db_session):
+    member1 = FamilyMember(name="Leader 1", total_points=200)
+    member2 = FamilyMember(name="Leader 2", total_points=150)
+    db_session.add_all([member1, member2])
+    db_session.commit()
+    db_session.refresh(member1)
+    db_session.refresh(member2)
+
     response = client.get("/api/leaderboard", headers={"Authorization": "Bearer dummy-token"})
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert response.json()[0]["name"] == "Test Member 1" # Sorted by points desc
-    assert response.json()[1]["name"] == "Test Member 2"
+    assert response.json()[0]["name"] == "Leader 1"
+    assert response.json()[1]["name"] == "Leader 2"
